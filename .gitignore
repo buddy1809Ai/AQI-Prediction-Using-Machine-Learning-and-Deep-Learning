@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+venv/; .venv/; env/
+data/raw/; data/processed/; outputs/cleaned/; outputs/engineered/; outputs/recovered/
+*.parquet; *.npz
+outputs/models/**/*.pkl; outputs/models/**/*.keras; outputs/models/**/*.h5
+.streamlit/secrets.toml
+.DS_Store; Thumbs.db
+*.log; *.tmp; .cache/

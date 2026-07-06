@@ -1,0 +1,7 @@
+{
+  "q1_valid": "NO \u2014 inflated by AQI lag/roll (target history)",
+  "q2_deploy": "PARTIAL \u2014 AQI lags valid only for 1h-ahead 1-step forecast",
+  "q3_leakage": "YES \u2014 AQI_lag1h dominates RF importance; indirect target leakage",
+  "q4_baseline": "Exp B best model R\u00b2 is honest LSTM benchmark",
+  "lstm_feats": "Use Exp B (no AQI-derived) as primary LSTM feature set"
+}

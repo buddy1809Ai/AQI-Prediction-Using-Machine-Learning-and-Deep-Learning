@@ -1,0 +1,13 @@
+city,experiment,exp_label,model,n_feats,R2,MAE,RMSE
+Ahmedabad,E,E — True Forecasting,Random Forest,73,0.8332,19.28,31.8
+Ahmedabad,E,E — True Forecasting,Grad. Boost,73,0.8389,19.39,31.25
+Ahmedabad,F,F — Pure Estimation,Random Forest,35,0.9328,7.34,20.18
+Ahmedabad,F,F — Pure Estimation,Grad. Boost,35,0.933,11.09,20.15
+Ahmedabad,G,G — Exp B Reference,Random Forest,88,0.9322,7.38,20.27
+Ahmedabad,G,G — Exp B Reference,Grad. Boost,88,0.9387,10.88,19.28
+Chennai,E,E — True Forecasting,Random Forest,72,0.8674,5.65,12.58
+Chennai,E,E — True Forecasting,Grad. Boost,72,0.8245,7.05,14.48
+Chennai,F,F — Pure Estimation,Random Forest,34,0.9893,2.3,3.58
+Chennai,F,F — Pure Estimation,Grad. Boost,34,0.9735,4.18,5.63
+Chennai,G,G — Exp B Reference,Random Forest,87,0.9892,2.3,3.6
+Chennai,G,G — Exp B Reference,Grad. Boost,87,0.9759,3.98,5.37

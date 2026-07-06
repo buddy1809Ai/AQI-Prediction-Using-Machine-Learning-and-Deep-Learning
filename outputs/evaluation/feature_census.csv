@@ -1,0 +1,116 @@
+feature,category,timestamp_relation,contains_AQI,deploy_ok,in_ExpB
+PM2.5 (µg/m³),Same-t Pollutant,same_t,False,True,True
+PM10 (µg/m³),Same-t Pollutant,same_t,False,True,True
+NO (µg/m³),Same-t Pollutant,same_t,False,True,True
+NO2 (µg/m³),Same-t Pollutant,same_t,False,True,True
+NOx (ppb),Same-t Pollutant,same_t,False,True,True
+NH3 (µg/m³),Same-t Pollutant,same_t,False,True,True
+SO2 (µg/m³),Same-t Pollutant,same_t,False,True,True
+CO (mg/m³),Same-t Pollutant,same_t,False,True,True
+Ozone (µg/m³),Same-t Pollutant,same_t,False,True,True
+Benzene (µg/m³),Same-t Pollutant,same_t,False,True,True
+Toluene (µg/m³),Same-t Pollutant,same_t,False,True,True
+AT (°C),Meteorological,same_t,False,True,True
+RH (%),Meteorological,same_t,False,True,True
+WS (m/s),Meteorological,same_t,False,True,True
+WD (deg),Meteorological,same_t,False,True,True
+SR (W/mt2),Meteorological,same_t,False,True,True
+BP (mmHg),Meteorological,same_t,False,True,True
+hour,Time/Cyclical,same_t,False,True,True
+day_of_week,Time/Cyclical,same_t,False,True,True
+month,Time/Cyclical,same_t,False,True,True
+day_of_year,Time/Cyclical,same_t,False,True,True
+is_weekend,Time/Cyclical,same_t,False,True,True
+season,Time/Cyclical,same_t,False,True,True
+hour_sin,Time/Cyclical,same_t,False,True,True
+hour_cos,Time/Cyclical,same_t,False,True,True
+month_sin,Time/Cyclical,same_t,False,True,True
+month_cos,Time/Cyclical,same_t,False,True,True
+dow_sin,Time/Cyclical,same_t,False,True,True
+dow_cos,Time/Cyclical,same_t,False,True,True
+AQI_lag1h,AQI Lag,past_only,True,False,False
+AQI_lag2h,AQI Lag,past_only,True,False,False
+AQI_lag3h,AQI Lag,past_only,True,False,False
+AQI_lag6h,AQI Lag,past_only,True,False,False
+AQI_lag12h,AQI Lag,past_only,True,False,False
+AQI_lag24h,AQI Lag,past_only,True,False,False
+AQI_lag48h,AQI Lag,past_only,True,False,False
+PM25_lag1h,Pollutant Lag,past_only,False,True,True
+PM25_lag2h,Pollutant Lag,past_only,False,True,True
+PM25_lag3h,Pollutant Lag,past_only,False,True,True
+PM25_lag6h,Pollutant Lag,past_only,False,True,True
+PM25_lag12h,Pollutant Lag,past_only,False,True,True
+PM25_lag24h,Pollutant Lag,past_only,False,True,True
+PM25_lag48h,Pollutant Lag,past_only,False,True,True
+PM10_lag1h,Pollutant Lag,past_only,False,True,True
+PM10_lag2h,Pollutant Lag,past_only,False,True,True
+PM10_lag3h,Pollutant Lag,past_only,False,True,True
+PM10_lag6h,Pollutant Lag,past_only,False,True,True
+PM10_lag12h,Pollutant Lag,past_only,False,True,True
+PM10_lag24h,Pollutant Lag,past_only,False,True,True
+PM10_lag48h,Pollutant Lag,past_only,False,True,True
+NO2_lag1h,Pollutant Lag,past_only,False,True,True
+NO2_lag2h,Pollutant Lag,past_only,False,True,True
+NO2_lag3h,Pollutant Lag,past_only,False,True,True
+NO2_lag6h,Pollutant Lag,past_only,False,True,True
+NO2_lag12h,Pollutant Lag,past_only,False,True,True
+NO2_lag24h,Pollutant Lag,past_only,False,True,True
+NO2_lag48h,Pollutant Lag,past_only,False,True,True
+SO2_lag1h,Pollutant Lag,past_only,False,True,True
+SO2_lag2h,Pollutant Lag,past_only,False,True,True
+SO2_lag3h,Pollutant Lag,past_only,False,True,True
+SO2_lag6h,Pollutant Lag,past_only,False,True,True
+SO2_lag12h,Pollutant Lag,past_only,False,True,True
+SO2_lag24h,Pollutant Lag,past_only,False,True,True
+SO2_lag48h,Pollutant Lag,past_only,False,True,True
+CO_lag1h,Pollutant Lag,past_only,False,True,True
+CO_lag2h,Pollutant Lag,past_only,False,True,True
+CO_lag3h,Pollutant Lag,past_only,False,True,True
+CO_lag6h,Pollutant Lag,past_only,False,True,True
+CO_lag12h,Pollutant Lag,past_only,False,True,True
+CO_lag24h,Pollutant Lag,past_only,False,True,True
+CO_lag48h,Pollutant Lag,past_only,False,True,True
+Ozone_lag1h,Pollutant Lag,past_only,False,True,True
+Ozone_lag2h,Pollutant Lag,past_only,False,True,True
+Ozone_lag3h,Pollutant Lag,past_only,False,True,True
+Ozone_lag6h,Pollutant Lag,past_only,False,True,True
+Ozone_lag12h,Pollutant Lag,past_only,False,True,True
+Ozone_lag24h,Pollutant Lag,past_only,False,True,True
+Ozone_lag48h,Pollutant Lag,past_only,False,True,True
+NH3_lag1h,Pollutant Lag,past_only,False,True,True
+NH3_lag2h,Pollutant Lag,past_only,False,True,True
+NH3_lag3h,Pollutant Lag,past_only,False,True,True
+NH3_lag6h,Pollutant Lag,past_only,False,True,True
+NH3_lag12h,Pollutant Lag,past_only,False,True,True
+NH3_lag24h,Pollutant Lag,past_only,False,True,True
+NH3_lag48h,Pollutant Lag,past_only,False,True,True
+AQI_roll_mean_3h,AQI Rolling,past_only,True,False,False
+AQI_roll_std_3h,AQI Rolling,past_only,True,False,False
+AQI_roll_max_3h,AQI Rolling,past_only,True,False,False
+AQI_roll_mean_6h,AQI Rolling,past_only,True,False,False
+AQI_roll_std_6h,AQI Rolling,past_only,True,False,False
+AQI_roll_max_6h,AQI Rolling,past_only,True,False,False
+AQI_roll_mean_12h,AQI Rolling,past_only,True,False,False
+AQI_roll_std_12h,AQI Rolling,past_only,True,False,False
+AQI_roll_max_12h,AQI Rolling,past_only,True,False,False
+AQI_roll_mean_24h,AQI Rolling,past_only,True,False,False
+AQI_roll_std_24h,AQI Rolling,past_only,True,False,False
+AQI_roll_max_24h,AQI Rolling,past_only,True,False,False
+AQI_roll_mean_48h,AQI Rolling,past_only,True,False,False
+AQI_roll_std_48h,AQI Rolling,past_only,True,False,False
+AQI_roll_max_48h,AQI Rolling,past_only,True,False,False
+PM25_roll_mean_6h,Pollutant Rolling,past_only,False,True,True
+PM25_roll_mean_24h,Pollutant Rolling,past_only,False,True,True
+PM10_roll_mean_6h,Pollutant Rolling,past_only,False,True,True
+PM10_roll_mean_24h,Pollutant Rolling,past_only,False,True,True
+AQI_diff1h,AQI Trend/Diff,past_only,True,False,False
+AQI_diff6h,AQI Trend/Diff,past_only,True,False,False
+AQI_diff24h,AQI Trend/Diff,past_only,True,False,False
+AQI_trend,AQI Trend/Diff,past_only,True,False,False
+PM25_PM10_ratio,Interaction (same-t),same_t,False,True,True
+NOx_proxy,Interaction (same-t),same_t,False,True,True
+CO_PM25_product,Interaction (same-t),same_t,False,True,True
+SO2_NO2_sum,Interaction (same-t),same_t,False,True,True
+wind_u,Interaction (same-t),same_t,False,True,True
+wind_v,Interaction (same-t),same_t,False,True,True
+city_id,City ID,same_t,False,True,False

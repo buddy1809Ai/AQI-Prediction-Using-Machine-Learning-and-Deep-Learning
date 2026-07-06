@@ -1,0 +1,55 @@
+city,experiment,model,n_feats,R2,MAE,RMSE,source
+Ahmedabad,B,Grad. Boost,88,0.9515,9.03,17.15,upstream
+Ahmedabad,B,Random Forest,88,0.9432,6.08,18.56,upstream
+Ahmedabad,B,Ridge,88,0.8272,21.35,32.37,upstream
+Chennai,B,Grad. Boost,87,0.9831,3.47,4.5,upstream
+Chennai,B,Random Forest,87,0.9972,1.1,1.84,upstream
+Chennai,B,Ridge,87,0.6826,15.83,19.47,upstream
+Delhi NCR,B,Grad. Boost,88,0.9965,4.49,7.46,computed
+Delhi NCR,B,Random Forest,88,0.9981,2.6,5.43,computed
+Delhi NCR,B,Ridge,88,0.9345,25.05,32.2,computed
+GandhiNagar,B,Grad. Boost,86,0.9932,1.99,3.42,computed
+GandhiNagar,B,Random Forest,86,0.997,1.01,2.27,computed
+GandhiNagar,B,Ridge,86,0.9286,6.94,11.09,computed
+Hyderabad,B,Grad. Boost,88,0.9572,3.94,7.81,computed
+Hyderabad,B,Random Forest,88,0.9402,2.33,9.24,computed
+Hyderabad,B,Ridge,88,0.8159,10.67,16.2,computed
+Indore,B,Grad. Boost,86,0.9906,4.06,6.79,computed
+Indore,B,Random Forest,86,0.9973,1.16,3.64,computed
+Indore,B,Ridge,86,0.9242,14.13,19.26,computed
+Jaipur,B,Grad. Boost,88,0.9591,7.04,12.43,computed
+Jaipur,B,Random Forest,88,0.9626,2.91,11.89,computed
+Jaipur,B,Ridge,88,0.8326,18.27,25.15,computed
+Jodhpur,B,Grad. Boost,87,0.9942,4.19,6.91,computed
+Jodhpur,B,Random Forest,87,0.9976,1.43,4.42,computed
+Jodhpur,B,Ridge,87,0.8952,21.04,29.43,computed
+Mumbai,B,Grad. Boost,87,0.98,5.23,8.77,computed
+Mumbai,B,Random Forest,87,0.9858,3.76,7.39,computed
+Mumbai,B,Ridge,87,0.8195,18.05,26.32,computed
+Mumbai suburbs,B,Grad. Boost,87,0.9919,1.93,4.39,computed
+Mumbai suburbs,B,Random Forest,87,0.991,0.96,4.63,computed
+Mumbai suburbs,B,Ridge,87,0.8457,13.17,19.15,computed
+Nagpur,B,Grad. Boost,87,0.9927,4.11,5.63,computed
+Nagpur,B,Random Forest,87,0.9958,1.97,4.24,computed
+Nagpur,B,Ridge,87,0.922,12.55,18.34,computed
+Pune,B,Grad. Boost,79,0.9787,7.25,12.01,computed
+Pune,B,Random Forest,79,0.9735,7.26,13.38,computed
+Pune,B,Ridge,79,0.4513,28.29,60.91,computed
+Singrauli,B,Grad. Boost,76,0.9959,4.59,6.88,computed
+Singrauli,B,Random Forest,76,0.9984,1.82,4.33,computed
+Singrauli,B,Ridge,76,0.9006,26.23,33.98,computed
+Surat,B,Grad. Boost,70,0.9914,5.4,8.28,computed
+Surat,B,Random Forest,70,0.9937,1.71,7.08,computed
+Surat,B,Ridge,70,0.8498,16.89,34.62,computed
+Thane,B,Grad. Boost,87,0.9934,2.19,3.87,computed
+Thane,B,Random Forest,87,0.9959,0.82,3.07,computed
+Thane,B,Ridge,87,0.8489,12.43,18.56,computed
+Vapi,B,Grad. Boost,85,0.996,3.59,4.83,computed
+Vapi,B,Random Forest,85,0.9982,1.3,3.22,computed
+Vapi,B,Ridge,85,0.8668,20.97,28.0,computed
+bhopal,B,Grad. Boost,86,0.9916,3.66,7.19,computed
+bhopal,B,Random Forest,86,0.9952,1.45,5.48,computed
+bhopal,B,Ridge,86,0.8441,18.92,31.06,computed
+vishakhapattanam,B,Grad. Boost,88,0.9911,3.2,8.07,computed
+vishakhapattanam,B,Random Forest,88,0.9945,1.99,6.35,computed
+vishakhapattanam,B,Ridge,88,0.9484,13.06,19.42,computed

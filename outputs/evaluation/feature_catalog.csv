@@ -1,0 +1,115 @@
+feature,category,uses_aqi,target_info,future,deploy_ok,is_leaky
+AQI_diff1h,AQI-derived Trend,YES,YES (diff),No,Marginal★,True
+AQI_diff24h,AQI-derived Trend,YES,YES (diff),No,Marginal★,True
+AQI_diff6h,AQI-derived Trend,YES,YES (diff),No,Marginal★,True
+AQI_lag12h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag1h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag24h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag2h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag3h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag48h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_lag6h,AQI-derived Lag,YES,YES (lagged AQI),No,Marginal★,True
+AQI_roll_max_12h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_max_24h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_max_3h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_max_48h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_max_6h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_mean_12h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_mean_24h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_mean_3h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_mean_48h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_mean_6h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_std_12h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_std_24h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_std_3h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_std_48h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_roll_std_6h,AQI-derived Rolling,YES,YES (rolling AQI),No,Marginal★,True
+AQI_trend,AQI-derived Trend,YES,YES (diff),No,Marginal★,True
+AT (°C),Meteorological,No,No,No,YES,False
+BP (mmHg),Meteorological,No,No,No,YES,False
+Benzene (µg/m³),Pollutant Raw,No,No,No,YES,False
+CO (mg/m³),Pollutant Raw,No,No,No,YES,False
+CO_PM25_product,Pollutant Raw,No,No,No,YES,False
+CO_lag12h,Pollutant Lag,No,No,No,YES,False
+CO_lag1h,Pollutant Lag,No,No,No,YES,False
+CO_lag24h,Pollutant Lag,No,No,No,YES,False
+CO_lag2h,Pollutant Lag,No,No,No,YES,False
+CO_lag3h,Pollutant Lag,No,No,No,YES,False
+CO_lag48h,Pollutant Lag,No,No,No,YES,False
+CO_lag6h,Pollutant Lag,No,No,No,YES,False
+NH3 (µg/m³),Pollutant Raw,No,No,No,YES,False
+NH3_lag12h,Pollutant Lag,No,No,No,YES,False
+NH3_lag1h,Pollutant Lag,No,No,No,YES,False
+NH3_lag24h,Pollutant Lag,No,No,No,YES,False
+NH3_lag2h,Pollutant Lag,No,No,No,YES,False
+NH3_lag3h,Pollutant Lag,No,No,No,YES,False
+NH3_lag48h,Pollutant Lag,No,No,No,YES,False
+NH3_lag6h,Pollutant Lag,No,No,No,YES,False
+NO (µg/m³),Pollutant Raw,No,No,No,YES,False
+NO2 (µg/m³),Pollutant Raw,No,No,No,YES,False
+NO2_lag12h,Pollutant Lag,No,No,No,YES,False
+NO2_lag1h,Pollutant Lag,No,No,No,YES,False
+NO2_lag24h,Pollutant Lag,No,No,No,YES,False
+NO2_lag2h,Pollutant Lag,No,No,No,YES,False
+NO2_lag3h,Pollutant Lag,No,No,No,YES,False
+NO2_lag48h,Pollutant Lag,No,No,No,YES,False
+NO2_lag6h,Pollutant Lag,No,No,No,YES,False
+NOx (ppb),Pollutant Raw,No,No,No,YES,False
+NOx_proxy,Pollutant Raw,No,No,No,YES,False
+Ozone (µg/m³),Pollutant Raw,No,No,No,YES,False
+Ozone_lag12h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag1h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag24h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag2h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag3h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag48h,Pollutant Lag,No,No,No,YES,False
+Ozone_lag6h,Pollutant Lag,No,No,No,YES,False
+PM10 (µg/m³),Pollutant Raw,No,No,No,YES,False
+PM10_lag12h,Pollutant Lag,No,No,No,YES,False
+PM10_lag1h,Pollutant Lag,No,No,No,YES,False
+PM10_lag24h,Pollutant Lag,No,No,No,YES,False
+PM10_lag2h,Pollutant Lag,No,No,No,YES,False
+PM10_lag3h,Pollutant Lag,No,No,No,YES,False
+PM10_lag48h,Pollutant Lag,No,No,No,YES,False
+PM10_lag6h,Pollutant Lag,No,No,No,YES,False
+PM10_roll_mean_24h,Pollutant Rolling,No,No,No,YES,False
+PM10_roll_mean_6h,Pollutant Rolling,No,No,No,YES,False
+PM2.5 (µg/m³),Pollutant Raw,No,No,No,YES,False
+PM25_PM10_ratio,Pollutant Raw,No,No,No,YES,False
+PM25_lag12h,Pollutant Lag,No,No,No,YES,False
+PM25_lag1h,Pollutant Lag,No,No,No,YES,False
+PM25_lag24h,Pollutant Lag,No,No,No,YES,False
+PM25_lag2h,Pollutant Lag,No,No,No,YES,False
+PM25_lag3h,Pollutant Lag,No,No,No,YES,False
+PM25_lag48h,Pollutant Lag,No,No,No,YES,False
+PM25_lag6h,Pollutant Lag,No,No,No,YES,False
+PM25_roll_mean_24h,Pollutant Rolling,No,No,No,YES,False
+PM25_roll_mean_6h,Pollutant Rolling,No,No,No,YES,False
+RH (%),Meteorological,No,No,No,YES,False
+SO2 (µg/m³),Pollutant Raw,No,No,No,YES,False
+SO2_NO2_sum,Pollutant Raw,No,No,No,YES,False
+SO2_lag12h,Pollutant Lag,No,No,No,YES,False
+SO2_lag1h,Pollutant Lag,No,No,No,YES,False
+SO2_lag24h,Pollutant Lag,No,No,No,YES,False
+SO2_lag2h,Pollutant Lag,No,No,No,YES,False
+SO2_lag3h,Pollutant Lag,No,No,No,YES,False
+SO2_lag48h,Pollutant Lag,No,No,No,YES,False
+SO2_lag6h,Pollutant Lag,No,No,No,YES,False
+SR (W/mt2),Meteorological,No,No,No,YES,False
+Toluene (µg/m³),Pollutant Raw,No,No,No,YES,False
+WD (deg),Meteorological,No,No,No,YES,False
+WS (m/s),Meteorological,No,No,No,YES,False
+day_of_week,Time/Cyclical,No,No,No,YES,False
+day_of_year,Time/Cyclical,No,No,No,YES,False
+dow_cos,Time/Cyclical,No,No,No,YES,False
+dow_sin,Time/Cyclical,No,No,No,YES,False
+hour,Time/Cyclical,No,No,No,YES,False
+hour_cos,Time/Cyclical,No,No,No,YES,False
+hour_sin,Time/Cyclical,No,No,No,YES,False
+is_weekend,Time/Cyclical,No,No,No,YES,False
+month,Time/Cyclical,No,No,No,YES,False
+month_cos,Time/Cyclical,No,No,No,YES,False
+month_sin,Time/Cyclical,No,No,No,YES,False
+season,Time/Cyclical,No,No,No,YES,False
+wind_u,Meteorological,No,No,No,YES,False
+wind_v,Meteorological,No,No,No,YES,False

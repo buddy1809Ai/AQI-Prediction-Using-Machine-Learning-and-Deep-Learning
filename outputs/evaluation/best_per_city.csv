@@ -1,0 +1,19 @@
+city,Best_Model,Best_R2,Best_MAE,Best_RMSE,n_feats
+Singrauli,Random Forest,0.9984,1.82,4.33,76
+Vapi,Random Forest,0.9982,1.3,3.22,85
+Delhi NCR,Random Forest,0.9981,2.6,5.43,88
+Jodhpur,Random Forest,0.9976,1.43,4.42,87
+Indore,Random Forest,0.9973,1.16,3.64,86
+Chennai,Random Forest,0.9972,1.1,1.84,87
+GandhiNagar,Random Forest,0.997,1.01,2.27,86
+Thane,Random Forest,0.9959,0.82,3.07,87
+Nagpur,Random Forest,0.9958,1.97,4.24,87
+bhopal,Random Forest,0.9952,1.45,5.48,86
+vishakhapattanam,Random Forest,0.9945,1.99,6.35,88
+Surat,Random Forest,0.9937,1.71,7.08,70
+Mumbai suburbs,Grad. Boost,0.9919,1.93,4.39,87
+Mumbai,Random Forest,0.9858,3.76,7.39,87
+Pune,Grad. Boost,0.9787,7.25,12.01,79
+Jaipur,Random Forest,0.9626,2.91,11.89,88
+Hyderabad,Grad. Boost,0.9572,3.94,7.81,88
+Ahmedabad,Grad. Boost,0.9515,9.03,17.15,88

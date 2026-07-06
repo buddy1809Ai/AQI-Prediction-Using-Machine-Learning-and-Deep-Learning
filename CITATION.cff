@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this code or research, please cite as below."
+title: "AQI Prediction Using Deep Learning: Dual-Track Study on 18 Indian Cities"
+type: software
+version: 1.0.0
+date-released: "2025-01-01"
+license: MIT
+keywords: [air-quality, AQI, deep-learning, LSTM, BiLSTM, India, CPCB, streamlit, forecasting]

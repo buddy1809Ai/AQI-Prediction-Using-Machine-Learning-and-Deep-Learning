@@ -1,0 +1,30 @@
+{
+  "Q1_safe_feature_count": 88,
+  "Q1_leaky_feature_count": 26,
+  "Q2_same_t_pollutants_in_ExpB": true,
+  "Q2_same_t_pollutant_list": [
+    "PM2.5 (\u00b5g/m\u00b3)",
+    "PM10 (\u00b5g/m\u00b3)",
+    "NO (\u00b5g/m\u00b3)",
+    "NO2 (\u00b5g/m\u00b3)",
+    "NOx (ppb)",
+    "NH3 (\u00b5g/m\u00b3)",
+    "SO2 (\u00b5g/m\u00b3)",
+    "CO (mg/m\u00b3)",
+    "Ozone (\u00b5g/m\u00b3)",
+    "Benzene (\u00b5g/m\u00b3)",
+    "Toluene (\u00b5g/m\u00b3)"
+  ],
+  "Q3_target_is_same_timestamp": true,
+  "Q4_identity_mean_R2": 1.0,
+  "Q4_identity_confirmed": true,
+  "Q5_task_type": "AQI_ESTIMATION (same-timestamp)",
+  "Q5_true_forecasting_RF_R2": 0.8503,
+  "Q5_pure_estimation_RF_R2": 0.961,
+  "Q5_expB_reference_RF_R2": 0.9607,
+  "Q6_ExpB_scores_valid_for_estimation": true,
+  "Q6_ExpB_scores_valid_for_forecasting": false,
+  "Q6_true_forecasting_baseline_R2": 0.8503,
+  "Q6_LSTM_should_use_ExpE_featureset": true,
+  "Q6_verdict": "Current Exp-B scores are scientifically valid AQI ESTIMATION benchmarks. They are NOT valid forecasting benchmarks. LSTM must use Experiment E feature set (lags+met+time, no same-t pollutants) for scientifically honest evaluation."
+}

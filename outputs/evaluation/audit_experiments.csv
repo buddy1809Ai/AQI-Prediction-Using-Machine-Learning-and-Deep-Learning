@@ -1,0 +1,21 @@
+city,experiment,model,n_feats,R2,MAE,RMSE
+Ahmedabad,A,Ridge,114,0.9998,0.62,0.98
+Ahmedabad,A,Random Forest,114,0.9447,5.67,18.3
+Ahmedabad,A,Grad. Boost,114,0.9619,7.49,15.19
+Ahmedabad,B,Ridge,88,0.8272,21.35,32.37
+Ahmedabad,B,Random Forest,88,0.9432,6.08,18.56
+Ahmedabad,B,Grad. Boost,88,0.9515,9.03,17.15
+Ahmedabad,C,Ridge,71,0.7206,30.99,41.16
+Ahmedabad,C,Random Forest,71,0.9433,6.06,18.54
+Ahmedabad,D,Ridge,20,0.3989,43.28,60.37
+Ahmedabad,D,Random Forest,20,0.3031,47.64,65.0
+Chennai,A,Ridge,113,0.9999,0.24,0.36
+Chennai,A,Random Forest,113,0.9991,0.46,1.01
+Chennai,A,Grad. Boost,113,0.9953,1.29,2.37
+Chennai,B,Ridge,87,0.6826,15.83,19.47
+Chennai,B,Random Forest,87,0.9972,1.1,1.84
+Chennai,B,Grad. Boost,87,0.9831,3.47,4.5
+Chennai,C,Ridge,71,0.7383,14.13,17.68
+Chennai,C,Random Forest,71,0.9971,1.1,1.84
+Chennai,D,Ridge,19,0.0145,17.97,34.3
+Chennai,D,Random Forest,19,-0.4053,25.67,40.96

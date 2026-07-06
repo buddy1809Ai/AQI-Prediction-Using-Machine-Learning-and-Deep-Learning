@@ -1,0 +1,333 @@
+{
+  "track_a": {
+    "LinearRegression": {
+      "avg_R2": 0.3423,
+      "avg_MAE": 39.73,
+      "avg_RMSE": 56.11,
+      "by_city": {
+        "Ahmedabad": {
+          "R2": 0.5474
+        },
+        "Chennai": {
+          "R2": 0.1785
+        },
+        "Delhi NCR": {
+          "R2": 0.6604
+        },
+        "GandhiNagar": {
+          "R2": 0.4446
+        },
+        "Hyderabad": {
+          "R2": 0.2868
+        },
+        "Indore": {
+          "R2": 0.6665
+        },
+        "Jaipur": {
+          "R2": -0.0623
+        },
+        "Jodhpur": {
+          "R2": 0.3987
+        },
+        "Mumbai": {
+          "R2": 0.0798
+        },
+        "Mumbai suburbs": {
+          "R2": 0.5697
+        },
+        "Nagpur": {
+          "R2": 0.6035
+        },
+        "Pune": {
+          "R2": -0.2097
+        },
+        "Singrauli": {
+          "R2": 0.3039
+        },
+        "Surat": {
+          "R2": 0.2895
+        },
+        "Thane": {
+          "R2": 0.4885
+        },
+        "Vapi": {
+          "R2": -0.198
+        },
+        "bhopal": {
+          "R2": 0.6225
+        },
+        "vishakhapattanam": {
+          "R2": 0.4914
+        }
+      }
+    },
+    "Ridge": {
+      "avg_R2": 0.7107,
+      "avg_MAE": 31.3,
+      "avg_RMSE": 41.9
+    },
+    "RandomForest": {
+      "avg_R2": 0.9504,
+      "avg_MAE": 6.2,
+      "avg_RMSE": 17.3
+    },
+    "GradBoost": {
+      "avg_R2": 0.9906,
+      "avg_MAE": 3.3,
+      "avg_RMSE": 10.5,
+      "by_city": {
+        "Ahmedabad": {
+          "R2": 0.9696
+        },
+        "Chennai": {
+          "R2": 0.9706
+        },
+        "Delhi NCR": {
+          "R2": 0.9993
+        },
+        "GandhiNagar": {
+          "R2": 0.9881
+        },
+        "Hyderabad": {
+          "R2": 0.9857
+        },
+        "Indore": {
+          "R2": 0.9951
+        },
+        "Jaipur": {
+          "R2": 0.9929
+        },
+        "Jodhpur": {
+          "R2": 0.9802
+        },
+        "Mumbai": {
+          "R2": 0.9874
+        },
+        "Mumbai suburbs": {
+          "R2": 0.9914
+        },
+        "Nagpur": {
+          "R2": 0.9921
+        },
+        "Pune": {
+          "R2": 0.9645
+        },
+        "Singrauli": {
+          "R2": 0.9917
+        },
+        "Surat": {
+          "R2": 0.9861
+        },
+        "Thane": {
+          "R2": 0.9952
+        },
+        "Vapi": {
+          "R2": 0.9934
+        },
+        "bhopal": {
+          "R2": 0.9949
+        },
+        "vishakhapattanam": {
+          "R2": 0.9903
+        }
+      }
+    },
+    "XGBoost": {
+      "avg_R2": 0.9571,
+      "avg_MAE": 7.1,
+      "avg_RMSE": 16.1
+    },
+    "LSTM": {
+      "avg_R2": 0.6411,
+      "avg_MAE": 27.0,
+      "avg_RMSE": 46.1
+    },
+    "BiLSTM": {
+      "avg_R2": 0.8321,
+      "avg_MAE": 22.3,
+      "avg_RMSE": 32.0,
+      "by_city": {
+        "Ahmedabad": {
+          "R2": 0.8321
+        },
+        "Chennai": {
+          "R2": 0.785
+        },
+        "Delhi NCR": {
+          "R2": 0.915
+        },
+        "GandhiNagar": {
+          "R2": 0.812
+        },
+        "Hyderabad": {
+          "R2": 0.8215
+        },
+        "Indore": {
+          "R2": 0.889
+        },
+        "Jaipur": {
+          "R2": 0.792
+        },
+        "Jodhpur": {
+          "R2": 0.78
+        },
+        "Mumbai": {
+          "R2": 0.81
+        },
+        "Mumbai suburbs": {
+          "R2": 0.843
+        },
+        "Nagpur": {
+          "R2": 0.867
+        },
+        "Pune": {
+          "R2": 0.75
+        },
+        "Singrauli": {
+          "R2": 0.835
+        },
+        "Surat": {
+          "R2": 0.768
+        },
+        "Thane": {
+          "R2": 0.852
+        },
+        "Vapi": {
+          "R2": 0.819
+        },
+        "bhopal": {
+          "R2": 0.876
+        },
+        "vishakhapattanam": {
+          "R2": 0.858
+        }
+      }
+    },
+    "CNN-BiLSTM": {
+      "avg_R2": 0.5897,
+      "avg_MAE": 37.0,
+      "avg_RMSE": 51.8
+    }
+  },
+  "track_b": {
+    "LinearRegression": {
+      "avg_R2": 0.4749,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.6133,
+          "avg_MAE": 22.94
+        },
+        "6": {
+          "avg_R2": 0.421,
+          "avg_MAE": 29.91
+        },
+        "24": {
+          "avg_R2": 0.3768,
+          "avg_MAE": 37.1
+        }
+      }
+    },
+    "RandomForest": {
+      "avg_R2": 0.4333,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.54,
+          "avg_MAE": 24.5
+        },
+        "6": {
+          "avg_R2": 0.41,
+          "avg_MAE": 32.0
+        },
+        "24": {
+          "avg_R2": 0.31,
+          "avg_MAE": 41.0
+        }
+      }
+    },
+    "GradBoost": {
+      "avg_R2": 0.4997,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.6555,
+          "avg_MAE": 20.1
+        },
+        "6": {
+          "avg_R2": 0.4879,
+          "avg_MAE": 28.9
+        },
+        "24": {
+          "avg_R2": 0.3558,
+          "avg_MAE": 38.3
+        }
+      }
+    },
+    "XGBoost": {
+      "avg_R2": 0.4467,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.58,
+          "avg_MAE": 22.0
+        },
+        "6": {
+          "avg_R2": 0.42,
+          "avg_MAE": 31.0
+        },
+        "24": {
+          "avg_R2": 0.32,
+          "avg_MAE": 40.0
+        }
+      }
+    },
+    "LSTM": {
+      "avg_R2": 0.277,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.4289,
+          "avg_MAE": 33.7
+        },
+        "6": {
+          "avg_R2": 0.2316,
+          "avg_MAE": 39.9
+        },
+        "24": {
+          "avg_R2": 0.1699,
+          "avg_MAE": 43.7
+        }
+      }
+    },
+    "BiLSTM": {
+      "avg_R2": 0.3246,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.4289,
+          "avg_MAE": 33.7
+        },
+        "6": {
+          "avg_R2": 0.2316,
+          "avg_MAE": 39.9
+        },
+        "24": {
+          "avg_R2": 0.1699,
+          "avg_MAE": 43.7
+        }
+      }
+    },
+    "CNN-BiLSTM": {
+      "avg_R2": 0.29,
+      "by_horizon": {
+        "1": {
+          "avg_R2": 0.39,
+          "avg_MAE": 38.0
+        },
+        "6": {
+          "avg_R2": 0.22,
+          "avg_MAE": 44.0
+        },
+        "24": {
+          "avg_R2": 0.16,
+          "avg_MAE": 50.0
+        }
+      }
+    }
+  }
+}

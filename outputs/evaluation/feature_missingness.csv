@@ -1,0 +1,631 @@
+city,group,feature,miss_pct,n_nonnull
+Ahmedabad,same_t_poll,PM2.5 (µg/m³),0.0266,27485
+Ahmedabad,same_t_poll,PM10 (µg/m³),0.0295,27402
+Ahmedabad,same_t_poll,NO (µg/m³),0.0942,25576
+Ahmedabad,same_t_poll,NO2 (µg/m³),0.0952,25548
+Ahmedabad,same_t_poll,NOx (ppb),0.0932,25603
+Ahmedabad,same_t_poll,NH3 (µg/m³),0.1193,24867
+Ahmedabad,same_t_poll,SO2 (µg/m³),0.0157,27794
+Ahmedabad,same_t_poll,CO (mg/m³),0.0664,26361
+Ahmedabad,same_t_poll,Ozone (µg/m³),0.115,24988
+Ahmedabad,same_t_poll,Benzene (µg/m³),0.4424,15745
+Ahmedabad,same_t_poll,Toluene (µg/m³),0.4429,15731
+Ahmedabad,meteorological,AT (°C),0.6966,8567
+Ahmedabad,meteorological,RH (%),0.0227,27596
+Ahmedabad,meteorological,WS (m/s),0.0067,28047
+Ahmedabad,meteorological,WD (deg),0.0198,27677
+Ahmedabad,meteorological,SR (W/mt2),0.9888,315
+Ahmedabad,meteorological,BP (mmHg),0.9888,315
+Ahmedabad,time,hour,0.0,28236
+Ahmedabad,time,day_of_week,0.0,28236
+Ahmedabad,time,month,0.0,28236
+Ahmedabad,time,day_of_year,0.0,28236
+Ahmedabad,time,is_weekend,0.0,28236
+Ahmedabad,time,season,0.0,28236
+Ahmedabad,time,hour_sin,0.0,28236
+Ahmedabad,time,hour_cos,0.0,28236
+Ahmedabad,time,month_sin,0.0,28236
+Ahmedabad,time,month_cos,0.0,28236
+Ahmedabad,time,dow_sin,0.0,28236
+Ahmedabad,time,dow_cos,0.0,28236
+Ahmedabad,interaction,PM25_PM10_ratio,0.0299,27392
+Ahmedabad,interaction,NOx_proxy,0.0957,25534
+Ahmedabad,interaction,CO_PM25_product,0.0928,25615
+Ahmedabad,interaction,SO2_NO2_sum,0.1031,25324
+Ahmedabad,interaction,wind_u,0.0198,27677
+Ahmedabad,interaction,wind_v,0.0198,27677
+Chennai,same_t_poll,PM2.5 (µg/m³),0.0213,43176
+Chennai,same_t_poll,PM10 (µg/m³),0.0862,40312
+Chennai,same_t_poll,NO (µg/m³),0.0227,43114
+Chennai,same_t_poll,NO2 (µg/m³),0.0224,43129
+Chennai,same_t_poll,NOx (ppb),0.0217,43158
+Chennai,same_t_poll,NH3 (µg/m³),0.0897,40161
+Chennai,same_t_poll,SO2 (µg/m³),0.0358,42536
+Chennai,same_t_poll,CO (mg/m³),0.0012,44063
+Chennai,same_t_poll,Ozone (µg/m³),0.0126,43559
+Chennai,same_t_poll,Benzene (µg/m³),0.0614,41410
+Chennai,same_t_poll,Toluene (µg/m³),0.0488,41964
+Chennai,meteorological,AT (°C),1.0,0
+Chennai,meteorological,RH (%),0.0036,43956
+Chennai,meteorological,WS (m/s),0.0059,43858
+Chennai,meteorological,WD (deg),0.0059,43858
+Chennai,meteorological,SR (W/mt2),0.0862,40316
+Chennai,meteorological,BP (mmHg),0.1442,37754
+Chennai,time,hour,0.0,44117
+Chennai,time,day_of_week,0.0,44117
+Chennai,time,month,0.0,44117
+Chennai,time,day_of_year,0.0,44117
+Chennai,time,is_weekend,0.0,44117
+Chennai,time,season,0.0,44117
+Chennai,time,hour_sin,0.0,44117
+Chennai,time,hour_cos,0.0,44117
+Chennai,time,month_sin,0.0,44117
+Chennai,time,month_cos,0.0,44117
+Chennai,time,dow_sin,0.0,44117
+Chennai,time,dow_cos,0.0,44117
+Chennai,interaction,PM25_PM10_ratio,0.0953,39912
+Chennai,interaction,NOx_proxy,0.0232,43095
+Chennai,interaction,CO_PM25_product,0.0224,43128
+Chennai,interaction,SO2_NO2_sum,0.0557,41660
+Chennai,interaction,wind_u,0.0059,43858
+Chennai,interaction,wind_v,0.0059,43858
+Delhi_NCR,same_t_poll,PM2.5 (µg/m³),0.0895,70750
+Delhi_NCR,same_t_poll,PM10 (µg/m³),0.0889,70799
+Delhi_NCR,same_t_poll,NO (µg/m³),0.0152,76520
+Delhi_NCR,same_t_poll,NO2 (µg/m³),0.0144,76582
+Delhi_NCR,same_t_poll,NOx (ppb),0.0379,74756
+Delhi_NCR,same_t_poll,NH3 (µg/m³),0.4835,40136
+Delhi_NCR,same_t_poll,SO2 (µg/m³),0.4812,40311
+Delhi_NCR,same_t_poll,CO (mg/m³),0.085,71102
+Delhi_NCR,same_t_poll,Ozone (µg/m³),0.0076,77111
+Delhi_NCR,same_t_poll,Benzene (µg/m³),0.5584,34317
+Delhi_NCR,same_t_poll,Toluene (µg/m³),0.7746,17517
+Delhi_NCR,meteorological,AT (°C),0.7486,19533
+Delhi_NCR,meteorological,RH (%),0.7497,19453
+Delhi_NCR,meteorological,WS (m/s),0.7745,17526
+Delhi_NCR,meteorological,WD (deg),0.7745,17526
+Delhi_NCR,meteorological,SR (W/mt2),0.7515,19311
+Delhi_NCR,meteorological,BP (mmHg),0.7507,19370
+Delhi_NCR,time,hour,0.0,77704
+Delhi_NCR,time,day_of_week,0.0,77704
+Delhi_NCR,time,month,0.0,77704
+Delhi_NCR,time,day_of_year,0.0,77704
+Delhi_NCR,time,is_weekend,0.0,77704
+Delhi_NCR,time,season,0.0,77704
+Delhi_NCR,time,hour_sin,0.0,77704
+Delhi_NCR,time,hour_cos,0.0,77704
+Delhi_NCR,time,month_sin,0.0,77704
+Delhi_NCR,time,month_cos,0.0,77704
+Delhi_NCR,time,dow_sin,0.0,77704
+Delhi_NCR,time,dow_cos,0.0,77704
+Delhi_NCR,interaction,PM25_PM10_ratio,0.0941,70392
+Delhi_NCR,interaction,NOx_proxy,0.0163,76441
+Delhi_NCR,interaction,CO_PM25_product,0.0976,70120
+Delhi_NCR,interaction,SO2_NO2_sum,0.4906,39581
+Delhi_NCR,interaction,wind_u,0.7745,17526
+Delhi_NCR,interaction,wind_v,0.7745,17526
+GandhiNagar,same_t_poll,PM2.5 (µg/m³),0.0042,58386
+GandhiNagar,same_t_poll,PM10 (µg/m³),0.0202,57445
+GandhiNagar,same_t_poll,NO (µg/m³),0.0197,57479
+GandhiNagar,same_t_poll,NO2 (µg/m³),0.0199,57465
+GandhiNagar,same_t_poll,NOx (ppb),0.0193,57502
+GandhiNagar,same_t_poll,NH3 (µg/m³),0.0205,57429
+GandhiNagar,same_t_poll,SO2 (µg/m³),0.0037,58415
+GandhiNagar,same_t_poll,CO (mg/m³),0.0048,58351
+GandhiNagar,same_t_poll,Ozone (µg/m³),0.0205,57430
+GandhiNagar,same_t_poll,Benzene (µg/m³),0.0066,58243
+GandhiNagar,same_t_poll,Toluene (µg/m³),0.0097,58065
+GandhiNagar,meteorological,AT (°C),1.0,0
+GandhiNagar,meteorological,RH (%),0.0013,58557
+GandhiNagar,meteorological,WS (m/s),0.005,58340
+GandhiNagar,meteorological,WD (deg),0.0049,58345
+GandhiNagar,meteorological,SR (W/mt2),0.0641,54874
+GandhiNagar,meteorological,BP (mmHg),1.0,0
+GandhiNagar,time,hour,0.0,58632
+GandhiNagar,time,day_of_week,0.0,58632
+GandhiNagar,time,month,0.0,58632
+GandhiNagar,time,day_of_year,0.0,58632
+GandhiNagar,time,is_weekend,0.0,58632
+GandhiNagar,time,season,0.0,58632
+GandhiNagar,time,hour_sin,0.0,58632
+GandhiNagar,time,hour_cos,0.0,58632
+GandhiNagar,time,month_sin,0.0,58632
+GandhiNagar,time,month_cos,0.0,58632
+GandhiNagar,time,dow_sin,0.0,58632
+GandhiNagar,time,dow_cos,0.0,58632
+GandhiNagar,interaction,PM25_PM10_ratio,0.0222,57329
+GandhiNagar,interaction,NOx_proxy,0.0205,57431
+GandhiNagar,interaction,CO_PM25_product,0.0081,58155
+GandhiNagar,interaction,SO2_NO2_sum,0.0225,57314
+GandhiNagar,interaction,wind_u,0.0054,58318
+GandhiNagar,interaction,wind_v,0.0054,58318
+Hyderabad,same_t_poll,PM2.5 (µg/m³),0.2375,83873
+Hyderabad,same_t_poll,PM10 (µg/m³),0.2955,77487
+Hyderabad,same_t_poll,NO (µg/m³),0.0086,109042
+Hyderabad,same_t_poll,NO2 (µg/m³),0.0101,108879
+Hyderabad,same_t_poll,NOx (ppb),0.0074,109180
+Hyderabad,same_t_poll,NH3 (µg/m³),0.3463,71906
+Hyderabad,same_t_poll,SO2 (µg/m³),0.0136,108492
+Hyderabad,same_t_poll,CO (mg/m³),0.0176,108059
+Hyderabad,same_t_poll,Ozone (µg/m³),0.0158,108252
+Hyderabad,same_t_poll,Benzene (µg/m³),0.0392,105682
+Hyderabad,same_t_poll,Toluene (µg/m³),0.043,105266
+Hyderabad,meteorological,AT (°C),0.2923,77842
+Hyderabad,meteorological,RH (%),0.0156,108277
+Hyderabad,meteorological,WS (m/s),0.0329,106373
+Hyderabad,meteorological,WD (deg),0.0173,108093
+Hyderabad,meteorological,SR (W/mt2),0.0151,108337
+Hyderabad,meteorological,BP (mmHg),0.015,108338
+Hyderabad,time,hour,0.0,109993
+Hyderabad,time,day_of_week,0.0,109993
+Hyderabad,time,month,0.0,109993
+Hyderabad,time,day_of_year,0.0,109993
+Hyderabad,time,is_weekend,0.0,109993
+Hyderabad,time,season,0.0,109993
+Hyderabad,time,hour_sin,0.0,109993
+Hyderabad,time,hour_cos,0.0,109993
+Hyderabad,time,month_sin,0.0,109993
+Hyderabad,time,month_cos,0.0,109993
+Hyderabad,time,dow_sin,0.0,109993
+Hyderabad,time,dow_cos,0.0,109993
+Hyderabad,interaction,PM25_PM10_ratio,0.3007,76920
+Hyderabad,interaction,NOx_proxy,0.0105,108838
+Hyderabad,interaction,CO_PM25_product,0.2526,82205
+Hyderabad,interaction,SO2_NO2_sum,0.0161,108225
+Hyderabad,interaction,wind_u,0.0355,106085
+Hyderabad,interaction,wind_v,0.0355,106085
+Indore,same_t_poll,PM2.5 (µg/m³),0.0194,42787
+Indore,same_t_poll,PM10 (µg/m³),0.0057,43387
+Indore,same_t_poll,NO (µg/m³),0.0009,43594
+Indore,same_t_poll,NO2 (µg/m³),0.0013,43578
+Indore,same_t_poll,NOx (ppb),0.0009,43597
+Indore,same_t_poll,NH3 (µg/m³),0.0028,43514
+Indore,same_t_poll,SO2 (µg/m³),0.0017,43559
+Indore,same_t_poll,CO (mg/m³),0.0189,42810
+Indore,same_t_poll,Ozone (µg/m³),0.0039,43463
+Indore,same_t_poll,Benzene (µg/m³),1.0,0
+Indore,same_t_poll,Toluene (µg/m³),1.0,0
+Indore,meteorological,AT (°C),0.0015,43571
+Indore,meteorological,RH (%),0.0,43634
+Indore,meteorological,WS (m/s),0.0,43634
+Indore,meteorological,WD (deg),0.0,43634
+Indore,meteorological,SR (W/mt2),0.0,43634
+Indore,meteorological,BP (mmHg),0.4239,25139
+Indore,time,hour,0.0,43635
+Indore,time,day_of_week,0.0,43635
+Indore,time,month,0.0,43635
+Indore,time,day_of_year,0.0,43635
+Indore,time,is_weekend,0.0,43635
+Indore,time,season,0.0,43635
+Indore,time,hour_sin,0.0,43635
+Indore,time,hour_cos,0.0,43635
+Indore,time,month_sin,0.0,43635
+Indore,time,month_cos,0.0,43635
+Indore,time,dow_sin,0.0,43635
+Indore,time,dow_cos,0.0,43635
+Indore,interaction,PM25_PM10_ratio,0.0203,42750
+Indore,interaction,NOx_proxy,0.0013,43578
+Indore,interaction,CO_PM25_product,0.0348,42117
+Indore,interaction,SO2_NO2_sum,0.0022,43540
+Indore,interaction,wind_u,0.0,43634
+Indore,interaction,wind_v,0.0,43634
+Jaipur,same_t_poll,PM2.5 (µg/m³),0.0097,41912
+Jaipur,same_t_poll,PM10 (µg/m³),0.0063,42055
+Jaipur,same_t_poll,NO (µg/m³),0.0067,42040
+Jaipur,same_t_poll,NO2 (µg/m³),0.0065,42049
+Jaipur,same_t_poll,NOx (ppb),0.0028,42205
+Jaipur,same_t_poll,NH3 (µg/m³),0.0059,42071
+Jaipur,same_t_poll,SO2 (µg/m³),0.0082,41975
+Jaipur,same_t_poll,CO (mg/m³),0.0067,42037
+Jaipur,same_t_poll,Ozone (µg/m³),0.0078,41992
+Jaipur,same_t_poll,Benzene (µg/m³),0.0041,42150
+Jaipur,same_t_poll,Toluene (µg/m³),0.004,42151
+Jaipur,meteorological,AT (°C),0.985,633
+Jaipur,meteorological,RH (%),0.0108,41864
+Jaipur,meteorological,WS (m/s),0.0099,41901
+Jaipur,meteorological,WD (deg),0.0096,41914
+Jaipur,meteorological,SR (W/mt2),0.0129,41776
+Jaipur,meteorological,BP (mmHg),0.007,42024
+Jaipur,time,hour,0.0,42322
+Jaipur,time,day_of_week,0.0,42322
+Jaipur,time,month,0.0,42322
+Jaipur,time,day_of_year,0.0,42322
+Jaipur,time,is_weekend,0.0,42322
+Jaipur,time,season,0.0,42322
+Jaipur,time,hour_sin,0.0,42322
+Jaipur,time,hour_cos,0.0,42322
+Jaipur,time,month_sin,0.0,42322
+Jaipur,time,month_cos,0.0,42322
+Jaipur,time,dow_sin,0.0,42322
+Jaipur,time,dow_cos,0.0,42322
+Jaipur,interaction,PM25_PM10_ratio,0.0116,41833
+Jaipur,interaction,NOx_proxy,0.01,41899
+Jaipur,interaction,CO_PM25_product,0.0159,41647
+Jaipur,interaction,SO2_NO2_sum,0.0139,41733
+Jaipur,interaction,wind_u,0.0122,41807
+Jaipur,interaction,wind_v,0.0122,41807
+Jodhpur,same_t_poll,PM2.5 (µg/m³),0.0024,43225
+Jodhpur,same_t_poll,PM10 (µg/m³),0.0033,43187
+Jodhpur,same_t_poll,NO (µg/m³),0.0001,43326
+Jodhpur,same_t_poll,NO2 (µg/m³),0.0029,43203
+Jodhpur,same_t_poll,NOx (ppb),0.0,43327
+Jodhpur,same_t_poll,NH3 (µg/m³),0.8641,5888
+Jodhpur,same_t_poll,SO2 (µg/m³),0.0014,43267
+Jodhpur,same_t_poll,CO (mg/m³),0.0037,43170
+Jodhpur,same_t_poll,Ozone (µg/m³),0.0003,43318
+Jodhpur,same_t_poll,Benzene (µg/m³),0.0006,43304
+Jodhpur,same_t_poll,Toluene (µg/m³),0.0006,43305
+Jodhpur,meteorological,AT (°C),1.0,0
+Jodhpur,meteorological,RH (%),0.0157,42650
+Jodhpur,meteorological,WS (m/s),0.012,42810
+Jodhpur,meteorological,WD (deg),0.012,42810
+Jodhpur,meteorological,SR (W/mt2),0.0121,42806
+Jodhpur,meteorological,BP (mmHg),0.232,33277
+Jodhpur,time,hour,0.0,43329
+Jodhpur,time,day_of_week,0.0,43329
+Jodhpur,time,month,0.0,43329
+Jodhpur,time,day_of_year,0.0,43329
+Jodhpur,time,is_weekend,0.0,43329
+Jodhpur,time,season,0.0,43329
+Jodhpur,time,hour_sin,0.0,43329
+Jodhpur,time,hour_cos,0.0,43329
+Jodhpur,time,month_sin,0.0,43329
+Jodhpur,time,month_cos,0.0,43329
+Jodhpur,time,dow_sin,0.0,43329
+Jodhpur,time,dow_cos,0.0,43329
+Jodhpur,interaction,PM25_PM10_ratio,0.0045,43132
+Jodhpur,interaction,NOx_proxy,0.0029,43202
+Jodhpur,interaction,CO_PM25_product,0.006,43067
+Jodhpur,interaction,SO2_NO2_sum,0.004,43157
+Jodhpur,interaction,wind_u,0.012,42810
+Jodhpur,interaction,wind_v,0.012,42810
+Mumbai,same_t_poll,PM2.5 (µg/m³),0.0774,50195
+Mumbai,same_t_poll,PM10 (µg/m³),0.0864,49702
+Mumbai,same_t_poll,NO (µg/m³),0.0362,52438
+Mumbai,same_t_poll,NO2 (µg/m³),0.023,53154
+Mumbai,same_t_poll,NOx (ppb),0.0152,53580
+Mumbai,same_t_poll,NH3 (µg/m³),0.0541,51460
+Mumbai,same_t_poll,SO2 (µg/m³),0.0085,53944
+Mumbai,same_t_poll,CO (mg/m³),0.0777,50177
+Mumbai,same_t_poll,Ozone (µg/m³),0.0414,52155
+Mumbai,same_t_poll,Benzene (µg/m³),0.113,48256
+Mumbai,same_t_poll,Toluene (µg/m³),1.0,0
+Mumbai,meteorological,AT (°C),0.028,52881
+Mumbai,meteorological,RH (%),0.0269,52944
+Mumbai,meteorological,WS (m/s),0.0269,52944
+Mumbai,meteorological,WD (deg),0.0269,52944
+Mumbai,meteorological,SR (W/mt2),0.1803,44594
+Mumbai,meteorological,BP (mmHg),0.516,26334
+Mumbai,time,hour,0.0,54405
+Mumbai,time,day_of_week,0.0,54405
+Mumbai,time,month,0.0,54405
+Mumbai,time,day_of_year,0.0,54405
+Mumbai,time,is_weekend,0.0,54405
+Mumbai,time,season,0.0,54405
+Mumbai,time,hour_sin,0.0,54405
+Mumbai,time,hour_cos,0.0,54405
+Mumbai,time,month_sin,0.0,54405
+Mumbai,time,month_cos,0.0,54405
+Mumbai,time,dow_sin,0.0,54405
+Mumbai,time,dow_cos,0.0,54405
+Mumbai,interaction,PM25_PM10_ratio,0.1358,47016
+Mumbai,interaction,NOx_proxy,0.0427,52082
+Mumbai,interaction,CO_PM25_product,0.1522,46122
+Mumbai,interaction,SO2_NO2_sum,0.0306,52742
+Mumbai,interaction,wind_u,0.0269,52944
+Mumbai,interaction,wind_v,0.0269,52944
+Mumbai_suburbs,same_t_poll,PM2.5 (µg/m³),0.0098,21412
+Mumbai_suburbs,same_t_poll,PM10 (µg/m³),0.0035,21549
+Mumbai_suburbs,same_t_poll,NO (µg/m³),0.0037,21546
+Mumbai_suburbs,same_t_poll,NO2 (µg/m³),0.0036,21548
+Mumbai_suburbs,same_t_poll,NOx (ppb),0.0033,21553
+Mumbai_suburbs,same_t_poll,NH3 (µg/m³),0.008,21452
+Mumbai_suburbs,same_t_poll,SO2 (µg/m³),0.0083,21446
+Mumbai_suburbs,same_t_poll,CO (mg/m³),0.0025,21572
+Mumbai_suburbs,same_t_poll,Ozone (µg/m³),0.0069,21475
+Mumbai_suburbs,same_t_poll,Benzene (µg/m³),0.0124,21356
+Mumbai_suburbs,same_t_poll,Toluene (µg/m³),0.0124,21356
+Mumbai_suburbs,meteorological,AT (°C),0.0004,21616
+Mumbai_suburbs,meteorological,RH (%),0.0004,21616
+Mumbai_suburbs,meteorological,WS (m/s),0.0004,21616
+Mumbai_suburbs,meteorological,WD (deg),0.0004,21616
+Mumbai_suburbs,meteorological,SR (W/mt2),0.0004,21616
+Mumbai_suburbs,meteorological,BP (mmHg),1.0,0
+Mumbai_suburbs,time,hour,0.0,21625
+Mumbai_suburbs,time,day_of_week,0.0,21625
+Mumbai_suburbs,time,month,0.0,21625
+Mumbai_suburbs,time,day_of_year,0.0,21625
+Mumbai_suburbs,time,is_weekend,0.0,21625
+Mumbai_suburbs,time,season,0.0,21625
+Mumbai_suburbs,time,hour_sin,0.0,21625
+Mumbai_suburbs,time,hour_cos,0.0,21625
+Mumbai_suburbs,time,month_sin,0.0,21625
+Mumbai_suburbs,time,month_cos,0.0,21625
+Mumbai_suburbs,time,dow_sin,0.0,21625
+Mumbai_suburbs,time,dow_cos,0.0,21625
+Mumbai_suburbs,interaction,PM25_PM10_ratio,0.0102,21405
+Mumbai_suburbs,interaction,NOx_proxy,0.0037,21546
+Mumbai_suburbs,interaction,CO_PM25_product,0.0103,21403
+Mumbai_suburbs,interaction,SO2_NO2_sum,0.0098,21414
+Mumbai_suburbs,interaction,wind_u,0.0004,21616
+Mumbai_suburbs,interaction,wind_v,0.0004,21616
+Nagpur,same_t_poll,PM2.5 (µg/m³),0.0311,78191
+Nagpur,same_t_poll,PM10 (µg/m³),0.0366,77745
+Nagpur,same_t_poll,NO (µg/m³),0.0351,77866
+Nagpur,same_t_poll,NO2 (µg/m³),0.0338,77971
+Nagpur,same_t_poll,NOx (ppb),0.0398,77490
+Nagpur,same_t_poll,NH3 (µg/m³),0.1262,70513
+Nagpur,same_t_poll,SO2 (µg/m³),0.0151,79485
+Nagpur,same_t_poll,CO (mg/m³),0.0051,80287
+Nagpur,same_t_poll,Ozone (µg/m³),0.0296,78312
+Nagpur,same_t_poll,Benzene (µg/m³),0.0207,79030
+Nagpur,same_t_poll,Toluene (µg/m³),0.0362,77775
+Nagpur,meteorological,AT (°C),1.0,0
+Nagpur,meteorological,RH (%),0.0055,80259
+Nagpur,meteorological,WS (m/s),0.0065,80174
+Nagpur,meteorological,WD (deg),0.011,79815
+Nagpur,meteorological,SR (W/mt2),0.1448,69015
+Nagpur,meteorological,BP (mmHg),0.9975,201
+Nagpur,time,hour,0.0,80700
+Nagpur,time,day_of_week,0.0,80700
+Nagpur,time,month,0.0,80700
+Nagpur,time,day_of_year,0.0,80700
+Nagpur,time,is_weekend,0.0,80700
+Nagpur,time,season,0.0,80700
+Nagpur,time,hour_sin,0.0,80700
+Nagpur,time,hour_cos,0.0,80700
+Nagpur,time,month_sin,0.0,80700
+Nagpur,time,month_cos,0.0,80700
+Nagpur,time,dow_sin,0.0,80700
+Nagpur,time,dow_cos,0.0,80700
+Nagpur,interaction,PM25_PM10_ratio,0.0473,76883
+Nagpur,interaction,NOx_proxy,0.0356,77829
+Nagpur,interaction,CO_PM25_product,0.0342,77941
+Nagpur,interaction,SO2_NO2_sum,0.0415,77353
+Nagpur,interaction,wind_u,0.011,79811
+Nagpur,interaction,wind_v,0.011,79811
+Pune,same_t_poll,PM2.5 (µg/m³),0.0253,68684
+Pune,same_t_poll,PM10 (µg/m³),0.0484,67053
+Pune,same_t_poll,NO (µg/m³),0.0376,67815
+Pune,same_t_poll,NO2 (µg/m³),0.0232,68834
+Pune,same_t_poll,NOx (ppb),0.1864,57334
+Pune,same_t_poll,NH3 (µg/m³),1.0,0
+Pune,same_t_poll,SO2 (µg/m³),0.0269,68570
+Pune,same_t_poll,CO (mg/m³),0.0011,70389
+Pune,same_t_poll,Ozone (µg/m³),0.0264,68607
+Pune,same_t_poll,Benzene (µg/m³),0.0029,70260
+Pune,same_t_poll,Toluene (µg/m³),0.4167,41102
+Pune,meteorological,AT (°C),1.0,0
+Pune,meteorological,RH (%),0.4514,38659
+Pune,meteorological,WS (m/s),0.0196,69085
+Pune,meteorological,WD (deg),0.077,65039
+Pune,meteorological,SR (W/mt2),0.5219,33692
+Pune,meteorological,BP (mmHg),0.5529,31507
+Pune,time,hour,0.0,70466
+Pune,time,day_of_week,0.0,70466
+Pune,time,month,0.0,70466
+Pune,time,day_of_year,0.0,70466
+Pune,time,is_weekend,0.0,70466
+Pune,time,season,0.0,70466
+Pune,time,hour_sin,0.0,70466
+Pune,time,hour_cos,0.0,70466
+Pune,time,month_sin,0.0,70466
+Pune,time,month_cos,0.0,70466
+Pune,time,dow_sin,0.0,70466
+Pune,time,dow_cos,0.0,70466
+Pune,interaction,PM25_PM10_ratio,0.0507,66895
+Pune,interaction,NOx_proxy,0.0379,67793
+Pune,interaction,CO_PM25_product,0.0258,68645
+Pune,interaction,SO2_NO2_sum,0.039,67721
+Pune,interaction,wind_u,0.083,64618
+Pune,interaction,wind_v,0.083,64618
+Singrauli,same_t_poll,PM2.5 (µg/m³),0.0062,69075
+Singrauli,same_t_poll,PM10 (µg/m³),0.0227,67930
+Singrauli,same_t_poll,NO (µg/m³),1.0,0
+Singrauli,same_t_poll,NO2 (µg/m³),0.0161,68386
+Singrauli,same_t_poll,NOx (ppb),1.0,0
+Singrauli,same_t_poll,NH3 (µg/m³),0.016,68392
+Singrauli,same_t_poll,SO2 (µg/m³),0.0205,68080
+Singrauli,same_t_poll,CO (mg/m³),0.026,67701
+Singrauli,same_t_poll,Ozone (µg/m³),0.0088,68893
+Singrauli,same_t_poll,Benzene (µg/m³),0.0238,67852
+Singrauli,same_t_poll,Toluene (µg/m³),1.0,0
+Singrauli,meteorological,AT (°C),1.0,0
+Singrauli,meteorological,RH (%),1.0,0
+Singrauli,meteorological,WS (m/s),1.0,0
+Singrauli,meteorological,WD (deg),1.0,0
+Singrauli,meteorological,SR (W/mt2),1.0,0
+Singrauli,meteorological,BP (mmHg),1.0,0
+Singrauli,time,hour,0.0,69506
+Singrauli,time,day_of_week,0.0,69506
+Singrauli,time,month,0.0,69506
+Singrauli,time,day_of_year,0.0,69506
+Singrauli,time,is_weekend,0.0,69506
+Singrauli,time,season,0.0,69506
+Singrauli,time,hour_sin,0.0,69506
+Singrauli,time,hour_cos,0.0,69506
+Singrauli,time,month_sin,0.0,69506
+Singrauli,time,month_cos,0.0,69506
+Singrauli,time,dow_sin,0.0,69506
+Singrauli,time,dow_cos,0.0,69506
+Singrauli,interaction,PM25_PM10_ratio,0.0269,67638
+Singrauli,interaction,NOx_proxy,1.0,0
+Singrauli,interaction,CO_PM25_product,0.0319,67287
+Singrauli,interaction,SO2_NO2_sum,0.0282,67546
+Singrauli,interaction,wind_u,1.0,0
+Singrauli,interaction,wind_v,1.0,0
+Surat,same_t_poll,PM2.5 (µg/m³),0.0182,25672
+Surat,same_t_poll,PM10 (µg/m³),0.036,25205
+Surat,same_t_poll,NO (µg/m³),0.006,25990
+Surat,same_t_poll,NO2 (µg/m³),0.0112,25855
+Surat,same_t_poll,NOx (ppb),0.0,26146
+Surat,same_t_poll,NH3 (µg/m³),1.0,0
+Surat,same_t_poll,SO2 (µg/m³),0.0168,25708
+Surat,same_t_poll,CO (mg/m³),0.0,26147
+Surat,same_t_poll,Ozone (µg/m³),1.0,0
+Surat,same_t_poll,Benzene (µg/m³),1.0,0
+Surat,same_t_poll,Toluene (µg/m³),1.0,0
+Surat,meteorological,AT (°C),0.0095,25899
+Surat,meteorological,RH (%),0.0095,25899
+Surat,meteorological,WS (m/s),0.0095,25899
+Surat,meteorological,WD (deg),0.0095,25899
+Surat,meteorological,SR (W/mt2),0.0,26147
+Surat,meteorological,BP (mmHg),0.0095,25899
+Surat,time,hour,0.0,26147
+Surat,time,day_of_week,0.0,26147
+Surat,time,month,0.0,26147
+Surat,time,day_of_year,0.0,26147
+Surat,time,is_weekend,0.0,26147
+Surat,time,season,0.0,26147
+Surat,time,hour_sin,0.0,26147
+Surat,time,hour_cos,0.0,26147
+Surat,time,month_sin,0.0,26147
+Surat,time,month_cos,0.0,26147
+Surat,time,dow_sin,0.0,26147
+Surat,time,dow_cos,0.0,26147
+Surat,interaction,PM25_PM10_ratio,0.0426,25034
+Surat,interaction,NOx_proxy,0.0112,25853
+Surat,interaction,CO_PM25_product,0.0182,25672
+Surat,interaction,SO2_NO2_sum,0.0226,25557
+Surat,interaction,wind_u,0.0095,25899
+Surat,interaction,wind_v,0.0095,25899
+Thane,same_t_poll,PM2.5 (µg/m³),0.0121,20272
+Thane,same_t_poll,PM10 (µg/m³),0.0051,20416
+Thane,same_t_poll,NO (µg/m³),0.0049,20420
+Thane,same_t_poll,NO2 (µg/m³),0.0038,20443
+Thane,same_t_poll,NOx (ppb),0.0037,20446
+Thane,same_t_poll,NH3 (µg/m³),0.0134,20246
+Thane,same_t_poll,SO2 (µg/m³),0.0096,20324
+Thane,same_t_poll,CO (mg/m³),0.001,20501
+Thane,same_t_poll,Ozone (µg/m³),0.0064,20389
+Thane,same_t_poll,Benzene (µg/m³),0.0156,20200
+Thane,same_t_poll,Toluene (µg/m³),0.0156,20200
+Thane,meteorological,AT (°C),0.0046,20427
+Thane,meteorological,RH (%),0.006,20397
+Thane,meteorological,WS (m/s),0.0045,20428
+Thane,meteorological,WD (deg),0.0045,20428
+Thane,meteorological,SR (W/mt2),0.0045,20428
+Thane,meteorological,BP (mmHg),1.0,0
+Thane,time,hour,0.0,20521
+Thane,time,day_of_week,0.0,20521
+Thane,time,month,0.0,20521
+Thane,time,day_of_year,0.0,20521
+Thane,time,is_weekend,0.0,20521
+Thane,time,season,0.0,20521
+Thane,time,hour_sin,0.0,20521
+Thane,time,hour_cos,0.0,20521
+Thane,time,month_sin,0.0,20521
+Thane,time,month_cos,0.0,20521
+Thane,time,dow_sin,0.0,20521
+Thane,time,dow_cos,0.0,20521
+Thane,interaction,PM25_PM10_ratio,0.0135,20244
+Thane,interaction,NOx_proxy,0.0049,20420
+Thane,interaction,CO_PM25_product,0.0126,20262
+Thane,interaction,SO2_NO2_sum,0.0134,20247
+Thane,interaction,wind_u,0.0045,20428
+Thane,interaction,wind_v,0.0045,20428
+Vapi,same_t_poll,PM2.5 (µg/m³),0.0857,53291
+Vapi,same_t_poll,PM10 (µg/m³),0.1139,51649
+Vapi,same_t_poll,NO (µg/m³),0.2594,43168
+Vapi,same_t_poll,NO2 (µg/m³),0.2192,45510
+Vapi,same_t_poll,NOx (ppb),0.0038,58062
+Vapi,same_t_poll,NH3 (µg/m³),0.0739,53975
+Vapi,same_t_poll,SO2 (µg/m³),0.0103,57683
+Vapi,same_t_poll,CO (mg/m³),0.2739,42319
+Vapi,same_t_poll,Ozone (µg/m³),0.0573,54947
+Vapi,same_t_poll,Benzene (µg/m³),0.0365,56159
+Vapi,same_t_poll,Toluene (µg/m³),1.0,0
+Vapi,meteorological,AT (°C),1.0,0
+Vapi,meteorological,RH (%),0.127,50885
+Vapi,meteorological,WS (m/s),0.001,58225
+Vapi,meteorological,WD (deg),0.0,58285
+Vapi,meteorological,SR (W/mt2),0.0,58285
+Vapi,meteorological,BP (mmHg),1.0,0
+Vapi,time,hour,0.0,58285
+Vapi,time,day_of_week,0.0,58285
+Vapi,time,month,0.0,58285
+Vapi,time,day_of_year,0.0,58285
+Vapi,time,is_weekend,0.0,58285
+Vapi,time,season,0.0,58285
+Vapi,time,hour_sin,0.0,58285
+Vapi,time,hour_cos,0.0,58285
+Vapi,time,month_sin,0.0,58285
+Vapi,time,month_cos,0.0,58285
+Vapi,time,dow_sin,0.0,58285
+Vapi,time,dow_cos,0.0,58285
+Vapi,interaction,PM25_PM10_ratio,0.1966,46829
+Vapi,interaction,NOx_proxy,0.474,30655
+Vapi,interaction,CO_PM25_product,0.3561,37532
+Vapi,interaction,SO2_NO2_sum,0.2247,45188
+Vapi,interaction,wind_u,0.001,58225
+Vapi,interaction,wind_v,0.001,58225
+bhopal,same_t_poll,PM2.5 (µg/m³),0.0058,43263
+bhopal,same_t_poll,PM10 (µg/m³),0.0033,43371
+bhopal,same_t_poll,NO (µg/m³),0.0172,42767
+bhopal,same_t_poll,NO2 (µg/m³),0.0178,42740
+bhopal,same_t_poll,NOx (ppb),0.017,42774
+bhopal,same_t_poll,NH3 (µg/m³),0.0174,42760
+bhopal,same_t_poll,SO2 (µg/m³),0.0011,43467
+bhopal,same_t_poll,CO (mg/m³),0.0019,43431
+bhopal,same_t_poll,Ozone (µg/m³),0.0004,43496
+bhopal,same_t_poll,Benzene (µg/m³),1.0,0
+bhopal,same_t_poll,Toluene (µg/m³),1.0,0
+bhopal,meteorological,AT (°C),0.0015,43449
+bhopal,meteorological,RH (%),0.0001,43512
+bhopal,meteorological,WS (m/s),0.0001,43512
+bhopal,meteorological,WD (deg),0.0001,43512
+bhopal,meteorological,SR (W/mt2),0.0003,43501
+bhopal,meteorological,BP (mmHg),0.0003,43502
+bhopal,time,hour,0.0,43515
+bhopal,time,day_of_week,0.0,43515
+bhopal,time,month,0.0,43515
+bhopal,time,day_of_year,0.0,43515
+bhopal,time,is_weekend,0.0,43515
+bhopal,time,season,0.0,43515
+bhopal,time,hour_sin,0.0,43515
+bhopal,time,hour_cos,0.0,43515
+bhopal,time,month_sin,0.0,43515
+bhopal,time,month_cos,0.0,43515
+bhopal,time,dow_sin,0.0,43515
+bhopal,time,dow_cos,0.0,43515
+bhopal,interaction,PM25_PM10_ratio,0.0068,43220
+bhopal,interaction,NOx_proxy,0.0179,42737
+bhopal,interaction,CO_PM25_product,0.0077,43180
+bhopal,interaction,SO2_NO2_sum,0.0182,42725
+bhopal,interaction,wind_u,0.0001,43512
+bhopal,interaction,wind_v,0.0001,43512
+vishakhapattanam,same_t_poll,PM2.5 (µg/m³),0.0094,34288
+vishakhapattanam,same_t_poll,PM10 (µg/m³),0.0111,34231
+vishakhapattanam,same_t_poll,NO (µg/m³),0.0008,34586
+vishakhapattanam,same_t_poll,NO2 (µg/m³),0.0022,34537
+vishakhapattanam,same_t_poll,NOx (ppb),0.0003,34602
+vishakhapattanam,same_t_poll,NH3 (µg/m³),0.0053,34431
+vishakhapattanam,same_t_poll,SO2 (µg/m³),0.0051,34439
+vishakhapattanam,same_t_poll,CO (mg/m³),0.0007,34589
+vishakhapattanam,same_t_poll,Ozone (µg/m³),0.0107,34243
+vishakhapattanam,same_t_poll,Benzene (µg/m³),0.0019,34547
+vishakhapattanam,same_t_poll,Toluene (µg/m³),0.0019,34547
+vishakhapattanam,meteorological,AT (°C),0.004,34477
+vishakhapattanam,meteorological,RH (%),0.004,34476
+vishakhapattanam,meteorological,WS (m/s),0.0038,34481
+vishakhapattanam,meteorological,WD (deg),0.0039,34479
+vishakhapattanam,meteorological,SR (W/mt2),0.0039,34479
+vishakhapattanam,meteorological,BP (mmHg),0.0006,34594
+vishakhapattanam,time,hour,0.0,34614
+vishakhapattanam,time,day_of_week,0.0,34614
+vishakhapattanam,time,month,0.0,34614
+vishakhapattanam,time,day_of_year,0.0,34614
+vishakhapattanam,time,is_weekend,0.0,34614
+vishakhapattanam,time,season,0.0,34614
+vishakhapattanam,time,hour_sin,0.0,34614
+vishakhapattanam,time,hour_cos,0.0,34614
+vishakhapattanam,time,month_sin,0.0,34614
+vishakhapattanam,time,month_cos,0.0,34614
+vishakhapattanam,time,dow_sin,0.0,34614
+vishakhapattanam,time,dow_cos,0.0,34614
+vishakhapattanam,interaction,PM25_PM10_ratio,0.0152,34088
+vishakhapattanam,interaction,NOx_proxy,0.0027,34520
+vishakhapattanam,interaction,CO_PM25_product,0.0098,34274
+vishakhapattanam,interaction,SO2_NO2_sum,0.0067,34381
+vishakhapattanam,interaction,wind_u,0.004,34475
+vishakhapattanam,interaction,wind_v,0.004,34475

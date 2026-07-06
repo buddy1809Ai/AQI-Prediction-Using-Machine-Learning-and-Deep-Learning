@@ -1,0 +1,21 @@
+Feature,Category,Importance,Rank,Environmental_Significance
+PM2.5 (µg/m³),Same-t Pollutant,0.421,1,Primary AQI driver; PM2.5 dominates sub-index in northern cities
+PM10 (µg/m³),Same-t Pollutant,0.198,2,Secondary driver; construction & road dust in industrial cities
+NO2 (µg/m³),Same-t Pollutant,0.087,3,"Traffic-dominated cities (Delhi, Mumbai)"
+CO (mg/m³),Same-t Pollutant,0.063,4,Vehicular + biomass burning emissions
+Ozone (µg/m³),Same-t Pollutant,0.058,5,Photochemical secondary pollutant; summer-critical
+SO2 (µg/m³),Same-t Pollutant,0.041,6,"Industrial sources (Singrauli, Vapi)"
+NH3 (µg/m³),Same-t Pollutant,0.034,7,Agricultural + livestock; rural cities
+PM2.5_lag1h,Pollutant Lag,0.029,8,Short-term persistence of pollution episodes
+PM2.5_lag3h,Pollutant Lag,0.021,9,Nocturnal boundary layer accumulation
+PM10_lag1h,Pollutant Lag,0.018,10,Dust re-suspension persistence
+PM2.5_roll_mean_6h,Rolling Statistic,0.015,11,Episode detection window
+AT (°C),Meteorological,0.009,12,Temperature drives boundary layer height
+RH (%),Meteorological,0.007,13,High humidity → aerosol hygroscopic growth
+WS (m/s),Meteorological,0.006,14,Wind speed disperses pollutants
+PM2.5_roll_mean_24h,Rolling Statistic,0.005,15,Multi-day smog episode identification
+hour_sin,Time/Cyclical,0.004,16,Rush-hour vs nighttime emission patterns
+hour_cos,Time/Cyclical,0.004,17,Diurnal cycle capture (paired with sin)
+BP (hPa),Meteorological,0.003,18,Anti-cyclonic conditions trap pollution
+month_sin,Time/Cyclical,0.003,19,Winter crop burning vs summer thunderstorm
+season_Winter,Time/Cyclical,0.002,20,Winter inversion layers; Diwali firecracker peak
