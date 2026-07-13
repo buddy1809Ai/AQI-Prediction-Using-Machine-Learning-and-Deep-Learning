@@ -266,6 +266,36 @@ def compute_cpcb_aqi(pm25, pm10, no2, so2, co, o3, nh3) -> Optional[float]:
     return round(max(sub_indices), 1)
 
 
+_COLUMN_ALIASES = {
+    "r_squared": "r2", "rsquared": "r2", "r^2": "r2", "test_r2": "r2",
+    "r2_score": "r2", "val_r2": "r2", "r2score": "r2",
+    "mean_absolute_error": "mae", "test_mae": "mae", "val_mae": "mae",
+    "root_mean_squared_error": "rmse", "test_rmse": "rmse", "val_rmse": "rmse",
+    "city_name": "city", "cityname": "city",
+    "horizon_hours": "horizon", "horizon_h": "horizon", "h": "horizon",
+    "model_name": "model", "modelname": "model", "algorithm": "model",
+}
+
+
+def _normalize_metrics_df(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
+    """Lowercase/strip column names and map known aliases to a common schema
+    so downstream code can safely assume city/horizon/model/r2/mae/rmse exist
+    even if the CSV used different names or casing."""
+    if df is None:
+        return None
+    df = df.copy()
+    df.columns = [str(c).strip().lower().replace(" ", "_") for c in df.columns]
+    df = df.rename(columns={k: v for k, v in _COLUMN_ALIASES.items() if k in df.columns})
+    return df
+
+
+def _safe_val(sub: pd.DataFrame, col: str, default=None):
+    """Return sub[col].values[0] if col exists and sub is non-empty, else default."""
+    if sub is None or sub.empty or col not in sub.columns:
+        return default
+    return sub[col].values[0]
+
+
 @st.cache_data(show_spinner=False)
 def load_track_a_csv() -> Optional[pd.DataFrame]:
     """Load Track A evaluation metrics CSV."""
@@ -273,7 +303,7 @@ def load_track_a_csv() -> Optional[pd.DataFrame]:
     if not path.exists():
         return None
     try:
-        return pd.read_csv(path)
+        return _normalize_metrics_df(pd.read_csv(path))
     except Exception:
         return None
 
@@ -285,7 +315,7 @@ def load_track_b_csv(model_stem: str) -> Optional[pd.DataFrame]:
         path = base / f"{model_stem}.csv"
         if path.exists():
             try:
-                return pd.read_csv(path)
+                return _normalize_metrics_df(pd.read_csv(path))
             except Exception:
                 return None
     return None
@@ -506,8 +536,13 @@ def page_estimation():
     with col_city:
         city = st.selectbox("Select City", CITIES, key="est_city")
 
+    ta_required_cols = {"city", "model", "r2", "mae", "rmse"}
+    ta_ready = ta_df is not None and ta_required_cols.issubset(set(ta_df.columns))
+    if ta_df is not None and not ta_ready:
+        st.warning(f"⚠️ Track A CSV is missing expected columns: {sorted(ta_required_cols - set(ta_df.columns))}")
+
     with col_info:
-        if ta_df is not None:
+        if ta_ready:
             city_df = ta_df[ta_df["city"] == city]
             if not city_df.empty:
                 best_row = city_df.loc[city_df["r2"].idxmax()]
@@ -546,7 +581,7 @@ def page_estimation():
             )
 
         # Model performance table for this city
-        if ta_df is not None:
+        if ta_ready:
             city_df = ta_df[ta_df["city"] == city].copy()
             if not city_df.empty:
                 st.markdown("---")
@@ -599,7 +634,7 @@ def page_estimation():
             st.warning("⚠️ Track A evaluation CSV not found. Please ensure `outputs/tables/final_track_a_complete.csv` exists.")
 
     # Show summary even without button press
-    if ta_df is not None and city:
+    if ta_ready and city:
         city_df = ta_df[ta_df["city"] == city]
         if not city_df.empty:
             st.markdown("---")
@@ -666,14 +701,10 @@ def page_forecasting():
             df = tb_metrics.get(mname)
             if df is not None and "city" in df.columns and "horizon" in df.columns:
                 sub = df[(df["city"] == city) & (df["horizon"] == h)]
-                if not sub.empty:
-                    r2  = sub["r2"].values[0]
-                    mae = sub["mae"].values[0]
-                    row[f"{mname} R²"]  = round(float(r2), 4)
-                    row[f"{mname} MAE"] = round(float(mae), 2)
-                else:
-                    row[f"{mname} R²"]  = "N/A"
-                    row[f"{mname} MAE"] = "N/A"
+                r2  = _safe_val(sub, "r2")
+                mae = _safe_val(sub, "mae")
+                row[f"{mname} R²"]  = round(float(r2), 4) if r2 is not None else "N/A"
+                row[f"{mname} MAE"] = round(float(mae), 2) if mae is not None else "N/A"
             else:
                 row[f"{mname} R²"]  = "N/A"
                 row[f"{mname} MAE"] = "N/A"
@@ -691,12 +722,14 @@ def page_forecasting():
             df = tb_metrics.get(mname)
             if df is None:
                 continue
-            if "city" not in df.columns or "horizon" not in df.columns:
+            if "city" not in df.columns or "horizon" not in df.columns or "r2" not in df.columns:
                 continue
             sub = df[df["city"] == city].copy()
             if sub.empty:
                 continue
             sub = sub[sub["horizon"].isin(HORIZONS)].sort_values("horizon")
+            if sub.empty:
+                continue
             r2_plot_data.append({
                 "model": mname,
                 "horizons": sub["horizon"].tolist(),
@@ -741,20 +774,20 @@ def page_forecasting():
             b_cols = st.columns(len(HORIZONS))
             for i, h in enumerate(HORIZONS):
                 row = city_bilstm[city_bilstm["horizon"] == h]
-                if not row.empty:
-                    r2  = row["r2"].values[0]
-                    mae = row["mae"].values[0]
+                r2  = _safe_val(row, "r2")
+                mae = _safe_val(row, "mae")
+                if r2 is not None and mae is not None:
                     b_cols[i].metric(
                         label=f"BiLSTM {HORIZON_LABELS[h]}",
-                        value=f"R² = {r2:.4f}",
-                        delta=f"MAE = {mae:.2f}",
+                        value=f"R² = {float(r2):.4f}",
+                        delta=f"MAE = {float(mae):.2f}",
                     )
                 else:
                     b_cols[i].metric(label=f"BiLSTM {HORIZON_LABELS[h]}", value="N/A")
 
     # ── Trend direction indicator ─────────────────────────────────────────────
     xgb_df = tb_metrics.get("XGB")
-    if xgb_df is not None and "city" in xgb_df.columns:
+    if xgb_df is not None and "city" in xgb_df.columns and "r2" in xgb_df.columns and "horizon" in xgb_df.columns:
         city_xgb = xgb_df[xgb_df["city"] == city].sort_values("horizon")
         if len(city_xgb) >= 2:
             st.markdown("---")
@@ -796,8 +829,11 @@ def page_model_comparison():
     # ── TRACK A ──────────────────────────────────────────────────────────────
     with tab_a:
         ta_df = load_track_a_csv()
+        ta_req = {"model", "r2", "mae", "rmse", "city"}
         if ta_df is None:
             st.warning("Track A evaluation CSV not found.")
+        elif not ta_req.issubset(set(ta_df.columns)):
+            st.warning(f"Track A CSV is missing expected columns: {sorted(ta_req - set(ta_df.columns))}")
         else:
             st.markdown("#### 🏆 Track A — Overall Model Ranking (avg over all cities)")
             agg = (
@@ -864,8 +900,12 @@ def page_model_comparison():
             tb_all = pd.concat(all_tb_rows, ignore_index=True)
 
             st.markdown("#### 🏆 Track B — Model Ranking by Horizon")
+            if "r2" not in tb_all.columns or "mae" not in tb_all.columns or "city" not in tb_all.columns:
+                st.info("Some Track B evaluation files are missing required columns (r2/mae/city), so ranking can't be computed.")
             for h in HORIZONS:
-                sub = tb_all[tb_all["horizon"] == h] if "horizon" in tb_all.columns else pd.DataFrame()
+                if "horizon" not in tb_all.columns or "r2" not in tb_all.columns or "mae" not in tb_all.columns or "city" not in tb_all.columns:
+                    break
+                sub = tb_all[tb_all["horizon"] == h]
                 if sub.empty:
                     continue
                 agg_b = (
@@ -887,7 +927,7 @@ def page_model_comparison():
             # Combined bar chart
             try:
                 import plotly.express as px
-                if "horizon" in tb_all.columns:
+                if "horizon" in tb_all.columns and "r2" in tb_all.columns:
                     agg_all = (
                         tb_all.groupby(["Model", "horizon"])
                         .agg(avg_r2=("r2", "mean"))
@@ -929,11 +969,12 @@ def page_india_map():
         for mname, df in tb_metrics.items():
             if df is None:
                 continue
-            if "city" not in df.columns or "horizon" not in df.columns:
+            if "city" not in df.columns or "horizon" not in df.columns or "r2" not in df.columns:
                 continue
             sub = df[(df["city"] == city) & (df["horizon"] == horizon)]
-            if not sub.empty:
-                r2_vals.append(float(sub["r2"].values[0]))
+            r2 = _safe_val(sub, "r2")
+            if r2 is not None:
+                r2_vals.append(float(r2))
         city_r2[city] = round(float(np.mean(r2_vals)), 4) if r2_vals else float("nan")
 
     # Build geo dataframe
@@ -997,12 +1038,15 @@ def page_india_map():
         if "city" not in df.columns or "horizon" not in df.columns:
             continue
         sub = df[(df["city"] == city_sel) & (df["horizon"] == horizon)]
-        if not sub.empty:
+        r2  = _safe_val(sub, "r2")
+        mae = _safe_val(sub, "mae")
+        rmse = _safe_val(sub, "rmse")
+        if r2 is not None:
             detail_rows.append({
                 "Model": mname,
-                "R²": round(float(sub["r2"].values[0]), 4),
-                "MAE": round(float(sub["mae"].values[0]), 2),
-                "RMSE": round(float(sub["rmse"].values[0]), 2) if "rmse" in sub.columns else "N/A",
+                "R²": round(float(r2), 4),
+                "MAE": round(float(mae), 2) if mae is not None else "N/A",
+                "RMSE": round(float(rmse), 2) if rmse is not None else "N/A",
             })
     if detail_rows:
         detail_df = pd.DataFrame(detail_rows).set_index("Model").sort_values("R²", ascending=False)
