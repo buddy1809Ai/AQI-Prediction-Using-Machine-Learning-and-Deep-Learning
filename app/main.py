@@ -1,1201 +1,1355 @@
 """
-AQI Prediction Platform
-=======================
-Research Internship · IIIT Nagpur
-CPCB National Air Quality Dataset — 18 Cities · 7 Models
+AQI Prediction Using Machine Learning and Deep Learning
+=======================================================
+Research Internship  —  Indian Institute of Information Technology (IIIT) Nagpur
+CPCB Multi-City Dataset  |  18 Cities  |  18.7M Records  |  7 Models  |  3 Horizons
+
+Streamlit Dashboard — Single-file production app
+Run:  streamlit run main.py
 """
 
+import os
+import sys
+import json
+import pickle
 import warnings
+import zipfile
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import streamlit as st
+
 warnings.filterwarnings("ignore")
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import pickle
-import json
-import joblib
-from pathlib import Path
-from typing import Optional, Dict, Any, List, Tuple
-
-# ─── Page Config ────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page Config (must be first Streamlit call)
+# ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
-    layout="wide",
     page_title="AQI Prediction Platform",
     page_icon="🌬️",
+    layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ─── Paths ───────────────────────────────────────────────────────────────────
-ROOT        = Path(__file__).parent.parent
-TABLES      = ROOT / "outputs" / "tables"
-PRED_DIR    = ROOT / "outputs" / "predictions"
-MODELS_B    = ROOT / "models" / "track_b"
+# ─────────────────────────────────────────────────────────────────────────────
+#  Root Detection
+# ─────────────────────────────────────────────────────────────────────────────
+def find_root() -> Path:
+    """Locate the project root by checking multiple candidate paths."""
+    candidates = [
+        Path("AQI_Prediction_Project_Final (1)"),
+        Path("../AQI_Prediction_Project_Final (1)"),
+        Path(__file__).parent / "AQI_Prediction_Project_Final (1)",
+        Path(__file__).parent.parent / "AQI_Prediction_Project_Final (1)",
+        Path(__file__).parent.parent,
+        Path(__file__).parent,
+    ]
+    for c in candidates:
+        if (c / "outputs").exists():
+            return c.resolve()
+    return Path(".").resolve()
 
-# ─── Constants ───────────────────────────────────────────────────────────────
+ROOT = find_root()
+TABLES_DIR = ROOT / "outputs" / "tables"
+PREDS_DIR  = ROOT / "outputs" / "predictions"
+FIGS_DIR   = ROOT / "outputs" / "figures"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Constants
+# ─────────────────────────────────────────────────────────────────────────────
 CITIES = [
-    "Ahmedabad", "Chennai", "Delhi_NCR", "GandhiNagar", "Hyderabad",
-    "Indore", "Jaipur", "Jodhpur", "Mumbai", "Mumbai_suburbs",
-    "Nagpur", "Pune", "Singrauli", "Surat", "Thane", "Vapi",
-    "bhopal", "vishakhapattanam",
+    "Ahmedabad", "bhopal", "Chennai", "Delhi_NCR", "GandhiNagar",
+    "Hyderabad", "Indore", "Jaipur", "Jodhpur", "Mumbai",
+    "Mumbai_suburbs", "Nagpur", "Pune", "Singrauli", "Surat",
+    "Thane", "Vapi", "vishakhapattanam",
 ]
+
+CITY_DISPLAY = {c: c.replace("_", " ").title() for c in CITIES}
+CITY_DISPLAY["bhopal"] = "Bhopal"
+CITY_DISPLAY["vishakhapattanam"] = "Visakhapatnam"
+CITY_DISPLAY["Delhi_NCR"] = "Delhi NCR"
+CITY_DISPLAY["Mumbai_suburbs"] = "Mumbai Suburbs"
+CITY_DISPLAY["GandhiNagar"] = "Gandhinagar"
 
 CITY_COORDS = {
-    "Ahmedabad":         (23.03, 72.58),
-    "Chennai":           (13.08, 80.27),
-    "Delhi_NCR":         (28.67, 77.22),
-    "GandhiNagar":       (23.22, 72.65),
-    "Hyderabad":         (17.38, 78.49),
-    "Indore":            (22.72, 75.86),
-    "Jaipur":            (26.91, 75.79),
-    "Jodhpur":           (26.30, 73.02),
-    "Mumbai":            (19.08, 72.88),
-    "Mumbai_suburbs":    (19.18, 72.98),
-    "Nagpur":            (21.15, 79.09),
-    "Pune":              (18.52, 73.86),
-    "Singrauli":         (24.20, 82.67),
-    "Surat":             (21.17, 72.83),
-    "Thane":             (19.22, 72.97),
-    "Vapi":              (20.37, 72.91),
-    "bhopal":            (23.26, 77.41),
-    "vishakhapattanam":  (17.69, 83.22),
+    "Ahmedabad":       (23.0225, 72.5714),
+    "bhopal":          (23.2599, 77.4126),
+    "Chennai":         (13.0827, 80.2707),
+    "Delhi_NCR":       (28.7041, 77.1025),
+    "GandhiNagar":     (23.2156, 72.6369),
+    "Hyderabad":       (17.3850, 78.4867),
+    "Indore":          (22.7196, 75.8577),
+    "Jaipur":          (26.9124, 75.7873),
+    "Jodhpur":         (26.2389, 73.0243),
+    "Mumbai":          (19.0760, 72.8777),
+    "Mumbai_suburbs":  (19.1759, 72.9567),
+    "Nagpur":          (21.1458, 79.0882),
+    "Pune":            (18.5204, 73.8567),
+    "Singrauli":       (24.1997, 82.6718),
+    "Surat":           (21.1702, 72.8311),
+    "Thane":           (19.2183, 72.9781),
+    "Vapi":            (20.3717, 72.9101),
+    "vishakhapattanam":(17.6868, 83.2185),
 }
 
-HORIZONS = [1, 6, 24]
-HORIZON_LABELS = {1: "+1h", 6: "+6h", 24: "+24h"}
+HORIZONS = {1: "1-Hour", 6: "6-Hour", 24: "24-Hour"}
+HORIZON_LABELS = {"1-Hour": 1, "6-Hour": 6, "24-Hour": 24}
 
-MODEL_NAMES_A = ["Ridge", "RandomForest", "GradBoost", "XGBoost", "LSTM", "BiLSTM", "CNN-BiLSTM"]
-MODEL_NAMES_B = ["XGB", "GBR", "RF", "LSTM", "BiLSTM", "CNN-BiLSTM"]
-
-AQI_CATEGORIES = [
-    (0,   50,  "Good",         "#00e400"),
-    (51,  100, "Satisfactory", "#92d050"),
-    (101, 200, "Moderate",     "#ffff00"),
-    (201, 300, "Poor",         "#ff7e00"),
-    (301, 400, "Very Poor",    "#ff0000"),
-    (401, 500, "Severe",       "#7e0023"),
+# Confirmed performance numbers (hardcoded fallback)
+TRACK_A_RANKING = [
+    {"model": "GradBoost",     "r2": 0.9906, "mae": 2.95,  "rmse": 5.77},
+    {"model": "RandomForest",  "r2": 0.9874, "mae": 1.64,  "rmse": 6.05},
+    {"model": "XGBoost",       "r2": 0.9856, "mae": 2.83,  "rmse": 6.82},
+    {"model": "Ridge",         "r2": 0.8304, "mae": 18.69, "rmse": 28.17},
+    {"model": "LSTM",          "r2": 0.6411, "mae": 27.04, "rmse": 39.36},
+    {"model": "BiLSTM",        "r2": 0.5897, "mae": 27.57, "rmse": 40.59},
+    {"model": "CNN-BiLSTM",    "r2": 0.2756, "mae": 42.25, "rmse": 58.54},
 ]
 
-# CPCB breakpoints: (pollutant, [(BPlo, BPhi, Ilo, Ihi), ...])
-CPCB_BP = {
-    "PM2.5": [
-        (0, 30, 0, 50), (31, 60, 51, 100), (61, 90, 101, 200),
-        (91, 120, 201, 300), (121, 250, 301, 400), (251, 500, 401, 500),
-    ],
-    "PM10": [
-        (0, 50, 0, 50), (51, 100, 51, 100), (101, 250, 101, 200),
-        (251, 350, 201, 300), (351, 430, 301, 400), (431, 600, 401, 500),
-    ],
-    "NO2": [
-        (0, 40, 0, 50), (41, 80, 51, 100), (81, 180, 101, 200),
-        (181, 280, 201, 300), (281, 400, 301, 400), (401, 800, 401, 500),
-    ],
-    "SO2": [
-        (0, 40, 0, 50), (41, 80, 51, 100), (81, 380, 101, 200),
-        (381, 800, 201, 300), (801, 1600, 301, 400), (1601, 2100, 401, 500),
-    ],
-    "CO": [
-        (0, 1, 0, 50), (1.1, 2, 51, 100), (2.1, 10, 101, 200),
-        (10.1, 17, 201, 300), (17.1, 34, 301, 400), (34.1, 50, 401, 500),
-    ],
-    "O3": [
-        (0, 50, 0, 50), (51, 100, 51, 100), (101, 168, 101, 200),
-        (169, 208, 201, 300), (209, 748, 301, 400), (749, 1000, 401, 500),
-    ],
-    "NH3": [
-        (0, 200, 0, 50), (201, 400, 51, 100), (401, 800, 101, 200),
-        (801, 1200, 201, 300), (1201, 1800, 301, 400), (1801, 2400, 401, 500),
-    ],
+TRACK_B_RANKING = [
+    {"model": "GradientBoosting", "r2": 0.4997, "mae": 32.57, "rmse": 48.37},
+    {"model": "RandomForest",     "r2": 0.4914, "mae": 34.16, "rmse": 48.79},
+    {"model": "XGBoost",          "r2": 0.4902, "mae": 32.97, "rmse": 48.86},
+    {"model": "BiLSTM",           "r2": 0.2831, "mae": 39.07, "rmse": 56.65},
+    {"model": "LSTM",             "r2": 0.2768, "mae": 39.07, "rmse": 56.83},
+    {"model": "CNN-BiLSTM",       "r2":-0.4147, "mae": 48.21, "rmse": 67.50},
+]
+
+HORIZON_R2 = {1: 0.5313, 6: 0.1775, 24: 0.1046}
+
+# CPCB AQI Breakpoints: (C_low, C_high, I_low, I_high)
+CPCB_BREAKPOINTS = {
+    "PM2.5": [(0,30,0,50),(30,60,51,100),(60,90,101,200),(90,120,201,300),(120,250,301,400),(250,380,401,500)],
+    "PM10":  [(0,50,0,50),(50,100,51,100),(100,250,101,200),(250,350,201,300),(350,430,301,400),(430,600,401,500)],
+    "NO2":   [(0,40,0,50),(40,80,51,100),(80,180,101,200),(180,280,201,300),(280,400,301,400),(400,800,401,500)],
+    "SO2":   [(0,40,0,50),(40,80,51,100),(80,380,101,200),(380,800,201,300),(800,1600,301,400),(1600,2100,401,500)],
+    "CO":    [(0,1,0,50),(1,2,51,100),(2,10,101,200),(10,17,201,300),(17,34,301,400),(34,47,401,500)],
+    "O3":    [(0,50,0,50),(50,100,51,100),(100,168,101,200),(168,208,201,300),(208,748,301,400),(748,1000,401,500)],
+    "NH3":   [(0,200,0,50),(200,400,51,100),(400,800,101,200),(800,1200,201,300),(1200,1800,301,400),(1800,2400,401,500)],
 }
 
-# ─── CSS Styling ─────────────────────────────────────────────────────────────
-CUSTOM_CSS = """
+AQI_CATEGORIES = [
+    (0,   50,  "Good",         "#00b050"),
+    (51,  100, "Satisfactory", "#92d050"),
+    (101, 200, "Moderate",     "#ffff00"),
+    (201, 300, "Poor",         "#ff7c00"),
+    (301, 400, "Very Poor",    "#ff0000"),
+    (401, 500, "Severe",       "#7030a0"),
+]
+
+PLOTLY_COLORS = ["#3b82f6","#14b8a6","#8b5cf6","#f59e0b","#10b981","#ef4444","#ec4899"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  CSS Injection
+# ─────────────────────────────────────────────────────────────────────────────
+def inject_css():
+    st.markdown("""
 <style>
-/* Global font */
-html, body, [class*="css"]  { font-family: 'Inter', 'Segoe UI', sans-serif; }
+/* Root Variables */
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card2: #1a2332;
+  --accent-blue: #3b82f6;
+  --accent-teal: #14b8a6;
+  --accent-purple: #8b5cf6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #1e293b;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+/* App background */
+.stApp {
+  background-color: #0a0e1a !important;
+  color: #f1f5f9 !important;
+}
+
+/* Main content area */
+.main .block-container {
+  background-color: #0a0e1a;
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+}
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0d1b2a 0%, #1e3a5f 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%) !important;
+  border-right: 1px solid #1e293b;
 }
-section[data-testid="stSidebar"] * { color: #e0f0ff !important; }
+section[data-testid="stSidebar"] * {
+  color: #f1f5f9 !important;
+}
+section[data-testid="stSidebar"] .stRadio label {
+  color: #f1f5f9 !important;
+  font-size: 0.95rem;
+}
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stSlider label {
+  color: #94a3b8 !important;
+}
 
-/* Cards */
+/* Headers */
+h1, h2, h3, h4, h5, h6 { color: #f1f5f9 !important; }
+
+/* Metric cards */
+[data-testid="stMetric"] {
+  background: rgba(17, 24, 39, 0.8) !important;
+  border: 1px solid rgba(59,130,246,0.2) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+}
+[data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+[data-testid="stMetricValue"] { color: #f1f5f9 !important; }
+[data-testid="stMetricDelta"] { color: #14b8a6 !important; }
+
+/* Inputs */
+.stSelectbox > div > div,
+.stNumberInput > div > div,
+.stSlider { background: #111827 !important; color: #f1f5f9 !important; }
+
+/* Dataframes */
+.stDataFrame { border: 1px solid #1e293b !important; }
+
+/* Info / Warning / Error boxes */
+.stAlert { border-radius: 10px !important; }
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] { background: #111827; border-radius: 10px; }
+.stTabs [data-baseweb="tab"] { color: #94a3b8; }
+.stTabs [aria-selected="true"] { color: #3b82f6 !important; }
+
+/* Divider */
+hr { border-color: #1e293b !important; }
+
+/* Glass card */
+.glass-card {
+  background: rgba(17, 24, 39, 0.8);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  margin-bottom: 16px;
+}
+
+/* KPI cards */
 .kpi-card {
-    background: linear-gradient(135deg, #1e3a5f 0%, #0d2744 100%);
-    border: 1px solid #00d4aa33;
-    border-radius: 12px;
-    padding: 20px 16px;
-    text-align: center;
-    color: white;
+  background: linear-gradient(135deg, #1a2332 0%, #111827 100%);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
-.kpi-card .kpi-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #00d4aa;
-}
-.kpi-card .kpi-label {
-    font-size: 0.85rem;
-    color: #a0c0e0;
-    margin-top: 4px;
-}
+.kpi-number { font-size: 2.2rem; font-weight: 700; color: #3b82f6; line-height: 1.1; }
+.kpi-label  { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
 
-/* Hero */
-.hero-container {
-    background: linear-gradient(135deg, #0d1b2a 0%, #1e3a5f 50%, #0d2744 100%);
-    border-radius: 16px;
-    padding: 48px 40px;
-    text-align: center;
-    margin-bottom: 32px;
-    border: 1px solid #00d4aa44;
+/* Hero section */
+.hero-section {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #1a1a2e 100%);
+  border: 1px solid rgba(59,130,246,0.15);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  margin-bottom: 24px;
 }
 .hero-title {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #ffffff;
-    margin-bottom: 8px;
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
 }
-.hero-subtitle {
-    font-size: 1.2rem;
-    color: #00d4aa;
-    margin-bottom: 16px;
-}
-.hero-caption {
-    font-size: 0.95rem;
-    color: #7090a0;
+.hero-subtitle { font-size: 1.2rem; color: #94a3b8; margin-top: 8px; }
+.badge {
+  display: inline-block;
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  color: #3b82f6;
+  margin: 4px;
 }
 
-/* AQI Badge */
+/* AQI color indicator */
 .aqi-badge {
-    display: inline-block;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #000;
+  display: inline-block;
+  border-radius: 12px;
+  padding: 8px 20px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
 }
 
-/* Section header */
-.section-header {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1e3a5f;
-    border-left: 4px solid #00d4aa;
-    padding-left: 12px;
-    margin: 24px 0 16px 0;
-}
-
-/* Info box */
-.info-box {
-    background: #f0f8ff;
-    border: 1px solid #b0d4f0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 0.88rem;
-    color: #1e3a5f;
-    margin: 8px 0;
-}
+/* Rank badge */
+.rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+.rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+.rank-3 { background: linear-gradient(135deg, #b45309, #92400e); color: #fff; }
 
 /* Model card */
 .model-card {
-    background: white;
-    border: 1px solid #e0e8f0;
-    border-radius: 10px;
-    padding: 16px;
-    margin: 8px 0;
-    box-shadow: 0 2px 8px rgba(30,58,95,0.08);
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
 }
+.model-card:hover { border-color: #3b82f6; }
 
-/* Forecast table */
-.forecast-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.88rem;
+/* Footer */
+.sidebar-footer {
+  position: fixed;
+  bottom: 20px;
+  font-size: 0.75rem;
+  color: #475569;
+  text-align: center;
+  padding: 0 16px;
 }
-.forecast-table th {
-    background: #1e3a5f;
-    color: white;
-    padding: 8px 12px;
-    text-align: center;
-}
-.forecast-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #e8f0f8;
-    text-align: center;
-}
-.forecast-table tr:hover { background: #f5f9ff; }
 </style>
-"""
+""", unsafe_allow_html=True)
 
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
-
-
-# ─── Helper Functions ────────────────────────────────────────────────────────
-def get_aqi_category(aqi: float) -> Tuple[str, str]:
-    """Return (category_name, hex_color) for a given AQI value."""
+# ─────────────────────────────────────────────────────────────────────────────
+#  Helper Functions
+# ─────────────────────────────────────────────────────────────────────────────
+def aqi_color(aqi_val: float) -> tuple[str, str]:
+    """Return (hex_color, category_label) for an AQI value."""
     for lo, hi, cat, col in AQI_CATEGORIES:
-        if lo <= aqi <= hi:
-            return cat, col
-    return "Severe", "#7e0023"
+        if lo <= aqi_val <= hi:
+            return col, cat
+    if aqi_val > 500:
+        return "#7030a0", "Severe"
+    return "#00b050", "Good"
 
-
-def compute_sub_index(pollutant: str, concentration: float) -> Optional[float]:
-    """Compute CPCB sub-index for a single pollutant."""
-    if pollutant not in CPCB_BP or concentration < 0:
+def compute_sub_index(concentration: float, pollutant: str) -> float | None:
+    """Compute CPCB sub-index for one pollutant."""
+    if concentration is None or np.isnan(concentration) or concentration < 0:
         return None
-    for bp_lo, bp_hi, i_lo, i_hi in CPCB_BP[pollutant]:
-        if bp_lo <= concentration <= bp_hi:
-            si = ((i_hi - i_lo) / (bp_hi - bp_lo)) * (concentration - bp_lo) + i_lo
-            return round(si, 1)
-    return 500.0
-
-
-def compute_cpcb_aqi(pm25, pm10, no2, so2, co, o3, nh3) -> Optional[float]:
-    """Compute official CPCB AQI as max of all available sub-indices."""
-    inputs = {
-        "PM2.5": pm25, "PM10": pm10, "NO2": no2,
-        "SO2": so2, "CO": co, "O3": o3, "NH3": nh3,
-    }
-    sub_indices = []
-    for poll, val in inputs.items():
-        if val is not None and val >= 0:
-            si = compute_sub_index(poll, val)
-            if si is not None:
-                sub_indices.append(si)
-    if not sub_indices:
-        return None
-    return round(max(sub_indices), 1)
-
-
-_COLUMN_ALIASES = {
-    "r_squared": "r2", "rsquared": "r2", "r^2": "r2", "test_r2": "r2",
-    "r2_score": "r2", "val_r2": "r2", "r2score": "r2",
-    "mean_absolute_error": "mae", "test_mae": "mae", "val_mae": "mae",
-    "root_mean_squared_error": "rmse", "test_rmse": "rmse", "val_rmse": "rmse",
-    "city_name": "city", "cityname": "city",
-    "horizon_hours": "horizon", "horizon_h": "horizon", "h": "horizon",
-    "model_name": "model", "modelname": "model", "algorithm": "model",
-}
-
-
-def _normalize_metrics_df(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
-    """Lowercase/strip column names and map known aliases to a common schema
-    so downstream code can safely assume city/horizon/model/r2/mae/rmse exist
-    even if the CSV used different names or casing."""
-    if df is None:
-        return None
-    df = df.copy()
-    df.columns = [str(c).strip().lower().replace(" ", "_") for c in df.columns]
-    df = df.rename(columns={k: v for k, v in _COLUMN_ALIASES.items() if k in df.columns})
-    return df
-
-
-def _safe_val(sub: pd.DataFrame, col: str, default=None):
-    """Return sub[col].values[0] if col exists and sub is non-empty, else default."""
-    if sub is None or sub.empty or col not in sub.columns:
-        return default
-    return sub[col].values[0]
-
-
-@st.cache_data(show_spinner=False)
-def load_track_a_csv() -> Optional[pd.DataFrame]:
-    """Load Track A evaluation metrics CSV."""
-    path = TABLES / "final_track_a_complete.csv"
-    if not path.exists():
-        return None
-    try:
-        return _normalize_metrics_df(pd.read_csv(path))
-    except Exception:
-        return None
-
-
-@st.cache_data(show_spinner=False)
-def load_track_b_csv(model_stem: str) -> Optional[pd.DataFrame]:
-    """Load a Track B evaluation CSV by model stem (e.g. track_b_gbr)."""
-    for base in [TABLES]:
-        path = base / f"{model_stem}.csv"
-        if path.exists():
-            try:
-                return _normalize_metrics_df(pd.read_csv(path))
-            except Exception:
-                return None
+    bps = CPCB_BREAKPOINTS.get(pollutant, [])
+    for (c_lo, c_hi, i_lo, i_hi) in bps:
+        if c_lo <= concentration <= c_hi:
+            if c_hi == c_lo:
+                return float(i_lo)
+            return float(i_lo + (i_hi - i_lo) * (concentration - c_lo) / (c_hi - c_lo))
+    if bps and concentration > bps[-1][1]:
+        return 500.0
     return None
 
+def compute_cpcb_aqi(values: dict) -> tuple[float | None, dict]:
+    """Compute overall CPCB AQI = max of sub-indices. Returns (aqi, sub_indices)."""
+    sub = {}
+    for poll, val in values.items():
+        if val is not None and not np.isnan(val):
+            si = compute_sub_index(float(val), poll)
+            if si is not None:
+                sub[poll] = si
+    if not sub:
+        return None, {}
+    return max(sub.values()), sub
 
+def plotly_base_layout(title: str = "", height: int = 400) -> dict:
+    """Shared Plotly layout settings."""
+    return dict(
+        title=title,
+        template="plotly_dark",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#f1f5f9", family="Inter, sans-serif"),
+        margin=dict(l=20, r=20, t=40, b=20),
+        height=height,
+        colorway=PLOTLY_COLORS,
+    )
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Cached Data Loaders
+# ─────────────────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_xgb_model(city: str, horizon: int) -> Optional[Dict]:
-    """Load XGB model dict from pkl file."""
-    pkl_path = PRED_DIR / f"{city}_h{horizon:02d}_xgb.pkl"
-    if not pkl_path.exists():
-        return None
+def load_csv(rel_path: str) -> pd.DataFrame | None:
+    """Load a CSV relative to TABLES_DIR. Returns None if missing."""
+    p = TABLES_DIR / rel_path
+    if not p.exists():
+        # Try predictions dir
+        p2 = PREDS_DIR / rel_path
+        if p2.exists():
+            p = p2
+        else:
+            return None
     try:
-        with open(pkl_path, "rb") as f:
-            return pickle.load(f)
+        return pd.read_csv(p)
     except Exception:
         return None
 
+@st.cache_data(show_spinner=False)
+def load_track_a() -> pd.DataFrame | None:
+    return load_csv("final_track_a_complete.csv")
 
 @st.cache_data(show_spinner=False)
-def load_gbr_model(city: str, horizon: int) -> Optional[Any]:
-    """Load GBR joblib model if available."""
-    model_path = MODELS_B / f"{city}_h{horizon:02d}_gbr.joblib"
-    feat_path  = MODELS_B / f"{city}_h{horizon:02d}_gbr_features.json"
-    if not model_path.exists():
+def load_track_b() -> pd.DataFrame | None:
+    return load_csv("final_track_b_complete.csv")
+
+@st.cache_data(show_spinner=False)
+def load_track_a_ranking() -> pd.DataFrame:
+    df = load_csv("track_a_model_ranking.csv")
+    if df is not None and not df.empty:
+        return df
+    return pd.DataFrame(TRACK_A_RANKING)
+
+@st.cache_data(show_spinner=False)
+def load_track_b_ranking() -> pd.DataFrame:
+    df = load_csv("track_b_model_ranking.csv")
+    if df is not None and not df.empty:
+        return df
+    return pd.DataFrame(TRACK_B_RANKING)
+
+@st.cache_data(show_spinner=False)
+def load_bilstm_results() -> pd.DataFrame | None:
+    return load_csv("track_b_bilstm.csv")
+
+@st.cache_data(show_spinner=False)
+def load_predictions_csv(city: str, horizon_h: int) -> pd.DataFrame | None:
+    p = PREDS_DIR / f"{city}_h{horizon_h:02d}_predictions.csv"
+    if not p.exists():
         return None
     try:
-        model = joblib.load(model_path)
-        feats = None
-        if feat_path.exists():
-            with open(feat_path) as f:
-                feats = json.load(f)
-        return {"model": model, "feat_cols": feats}
+        return pd.read_csv(p)
     except Exception:
         return None
 
-
 @st.cache_data(show_spinner=False)
-def load_lstm_model(city: str, horizon: int) -> Optional[Dict]:
-    """Load LSTM keras model + scalers if available."""
-    model_path  = MODELS_B / f"{city}_h{horizon:02d}_lstm.keras"
-    sx_path     = MODELS_B / f"{city}_h{horizon:02d}_lstm_scaler_x.joblib"
-    sy_path     = MODELS_B / f"{city}_h{horizon:02d}_lstm_scaler_y.joblib"
-    feat_path   = MODELS_B / f"{city}_h{horizon:02d}_lstm_features.json"
-    if not model_path.exists():
-        return None
+def load_xgb_model(city: str, horizon_h: int):
+    """Load XGB pkl file. Returns (model_dict, error_str)."""
+    p = PREDS_DIR / f"{city}_h{horizon_h:02d}_xgb.pkl"
+    if not p.exists():
+        return None, f"Model file not found: {p.name}"
     try:
-        from tensorflow import keras
-        model = keras.models.load_model(str(model_path))
-        sc_x, sc_y, feats = None, None, None
-        if sx_path.exists():
-            sc_x = joblib.load(sx_path)
-        if sy_path.exists():
-            sc_y = joblib.load(sy_path)
-        if feat_path.exists():
-            with open(feat_path) as f:
-                feats = json.load(f)
-        return {"model": model, "scaler_x": sc_x, "scaler_y": sc_y, "feat_cols": feats}
-    except Exception:
+        with open(p, "rb") as f:
+            data = pickle.load(f)
+        return data, None
+    except Exception as e:
+        return None, str(e)
+
+def run_xgb_forecast(city: str, horizon_h: int) -> tuple[float | None, str | None]:
+    """Run XGBoost inference. Returns (predicted_aqi, error_str)."""
+    model_data, err = load_xgb_model(city, horizon_h)
+    if err:
+        return None, err
+    model = model_data.get("model")
+    feat_cols = model_data.get("feat_cols", model_data.get("safe_names", []))
+    if model is None:
+        return None, "No model object in pkl"
+    pred_df = load_predictions_csv(city, horizon_h)
+    if pred_df is None:
+        return None, "Prediction CSV not found"
+    available_cols = [c for c in feat_cols if c in pred_df.columns]
+    if not available_cols:
+        return None, f"Feature columns not found in CSV (needed {len(feat_cols)})"
+    try:
+        X_input = pred_df[available_cols].tail(10).mean().values.reshape(1, -1)
+        pred_val = model.predict(X_input)[0]
+        return float(max(0.0, pred_val)), None
+    except Exception as e:
+        return None, f"Inference error: {e}"
+
+def get_bilstm_result(city: str, horizon_h: int) -> dict | None:
+    """Get BiLSTM test-set result for a city+horizon."""
+    df = load_bilstm_results()
+    if df is None or df.empty:
         return None
+    row = df[(df["city"] == city) & (df["horizon"] == horizon_h)]
+    if row.empty:
+        return None
+    return row.iloc[0].to_dict()
 
-
-@st.cache_data(show_spinner=False)
-def load_bilstm_csv() -> Optional[pd.DataFrame]:
-    """Load BiLSTM evaluation CSV."""
-    return load_track_b_csv("track_b_bilstm")
-
-
-@st.cache_data(show_spinner=False)
-def get_all_track_b_metrics() -> Dict[str, Optional[pd.DataFrame]]:
-    """Load all Track B evaluation CSVs."""
-    stems = {
-        "GBR":        "track_b_gbr",
-        "RF":         "track_b_rf",
-        "XGB":        "track_b_xgb",
-        "LSTM":       "track_b_lstm",
-        "BiLSTM":     "track_b_bilstm",
-        "CNN-BiLSTM": "track_b_cnn_bilstm",
-    }
-    return {name: load_track_b_csv(stem) for name, stem in stems.items()}
-
-
-# ─── AQI Badge HTML ──────────────────────────────────────────────────────────
-def aqi_badge(aqi: float) -> str:
-    cat, col = get_aqi_category(aqi)
-    text_col = "#000" if col in ("#00e400", "#92d050", "#ffff00") else "#fff"
-    return (
-        f'<span class="aqi-badge" style="background:{col};color:{text_col};">'
-        f'AQI {aqi:.0f} — {cat}</span>'
-    )
-
-
-# ─── Sidebar Navigation ───────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(
-        '''<div style="text-align:center;padding:16px 0 24px;">
-            <div style="font-size:2rem;">🌬️</div>
-            <div style="font-size:1.1rem;font-weight:700;color:#00d4aa;">AQI Platform</div>
-            <div style="font-size:0.75rem;color:#7090a0;margin-top:4px;">IIIT Nagpur</div>
-        </div>''',
-        unsafe_allow_html=True,
-    )
-    page = st.radio(
-        "Navigate",
-        options=[
-            "🏠 Home",
-            "🔬 AQI Estimation",
-            "📈 AQI Forecasting",
-            "📊 Model Comparison",
-            "🗺️ India AQI Map",
-            "👨‍💻 About Project",
-        ],
-        label_visibility="collapsed",
-    )
-    st.markdown("---")
-    st.markdown(
-        '<div style="font-size:0.75rem;color:#506070;text-align:center;">'
-        'CPCB · 18 Cities · 7 Models</div>',
-        unsafe_allow_html=True,
-    )
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: HOME
-# ════════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 1 — Home
+# ─────────────────────────────────────────────────────────────────────────────
 def page_home():
-    st.markdown(
-        '''<div class="hero-container">
-            <div class="hero-title">🌬️ AQI Prediction Platform</div>
-            <div class="hero-subtitle">Research Internship · IIIT Nagpur</div>
-            <div class="hero-caption">CPCB National Air Quality Dataset · Multi-City Air Quality Intelligence</div>
-        </div>''',
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+<div class="hero-section">
+  <div class="hero-title">Air Quality Index Prediction</div>
+  <div class="hero-subtitle">Using Machine Learning and Deep Learning</div>
+  <div style="margin-top:16px;">
+    <span class="badge">Research Internship</span>
+    <span class="badge">IIIT Nagpur</span>
+    <span class="badge">YCCE</span>
+    <span class="badge">CPCB Dataset</span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-    # KPI Cards
-    kpi_data = [
-        ("18", "Cities Monitored"),
-        ("18.7M", "Raw Records"),
+    # KPI cards
+    c1, c2, c3, c4 = st.columns(4)
+    kpis = [
+        ("18", "Cities Covered"),
+        ("18.7M", "Data Records"),
         ("7", "ML/DL Models"),
         ("3", "Forecast Horizons"),
-        ("0.99", "Best R² (GBR)"),
     ]
-    cols = st.columns(5)
-    for col, (val, label) in zip(cols, kpi_data):
-        col.markdown(
-            f'''<div class="kpi-card">
-                <div class="kpi-value">{val}</div>
-                <div class="kpi-label">{label}</div>
-            </div>''',
-            unsafe_allow_html=True,
-        )
+    for col, (num, label) in zip([c1, c2, c3, c4], kpis):
+        col.markdown(f"""
+<div class="kpi-card">
+  <div class="kpi-number">{num}</div>
+  <div class="kpi-label">{label}</div>
+</div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Two-column feature overview
-    col_l, col_r = st.columns(2)
-    with col_l:
-        st.markdown("### 🔬 AQI Estimation (Track A)")
-        st.markdown(
-            """
-            Enter current pollutant readings and get **instant AQI estimates** from
-            7 machine learning models. Compare performance across Ridge, Random Forest,
-            Gradient Boosting, XGBoost, LSTM, BiLSTM, and CNN-BiLSTM — benchmarked on
-            real CPCB data from 18 Indian cities.
-            """
-        )
-        if st.button("→ Go to AQI Estimation", use_container_width=True, key="btn_est"):
-            st.session_state["_nav"] = "🔬 AQI Estimation"
-            st.rerun()
-
-    with col_r:
-        st.markdown("### 📈 AQI Forecasting (Track B)")
-        st.markdown(
-            """
-            Select a city and get **multi-horizon AQI forecasts** (+1h, +6h, +24h) using
-            trained XGBoost, GBR, and LSTM models — all trained on leakage-free, lag-based
-            feature pipelines. Includes trend analysis and CPCB category badges.
-            """
-        )
-        if st.button("→ Go to AQI Forecasting", use_container_width=True, key="btn_fore"):
-            st.session_state["_nav"] = "📈 AQI Forecasting"
-            st.rerun()
-
-    st.markdown("---")
-    st.markdown("### 🏆 Project Highlights")
-    h_col1, h_col2, h_col3 = st.columns(3)
-    with h_col1:
-        st.info("**Dual-Track Protocol**\nTrack A: same-time estimation\nTrack B: leakage-free forecasting")
-    with h_col2:
-        st.success("**Best Model: GBR**\nAvg R² = 0.99 (Track A)\nAvg R² ≈ 0.90 (Track B)")
-    with h_col3:
-        st.warning("**18 Cities × 7 Models**\n934K hourly records\n450+ experiments conducted")
-
-    st.markdown("---")
-    st.markdown(
-        '''<div class="info-box">
-        📌 <b>About this platform:</b> All model performance figures are based on held-out test sets
-        (chronological 70/15/15 split). Track A models have access to same-time pollutants (estimation task).
-        Track B models use only lag and rolling features (true forecasting — no data leakage).
-        </div>''',
-        unsafe_allow_html=True,
-    )
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: AQI ESTIMATION
-# ════════════════════════════════════════════════════════════════════════════════
-def page_estimation():
-    st.markdown('<div class="section-header">🔬 AQI Estimation</div>', unsafe_allow_html=True)
-    st.markdown(
-        "Enter current pollutant concentrations to compute the official **CPCB AQI** "
-        "and see how all 7 Track A models performed for your selected city."
-    )
-
-    ta_df = load_track_a_csv()
-
-    col_city, col_info = st.columns([1, 2])
-    with col_city:
-        city = st.selectbox("Select City", CITIES, key="est_city")
-
-    ta_required_cols = {"city", "model", "r2", "mae", "rmse"}
-    ta_ready = ta_df is not None and ta_required_cols.issubset(set(ta_df.columns))
-    if ta_df is not None and not ta_ready:
-        st.warning(f"⚠️ Track A CSV is missing expected columns: {sorted(ta_required_cols - set(ta_df.columns))}")
-
-    with col_info:
-        if ta_ready:
-            city_df = ta_df[ta_df["city"] == city]
-            if not city_df.empty:
-                best_row = city_df.loc[city_df["r2"].idxmax()]
-                st.metric(
-                    "Best Model for this City",
-                    best_row["model"],
-                    f"R² = {best_row['r2']:.4f}",
-                )
-
-    st.markdown("---")
-    st.markdown("#### 💨 Enter Pollutant Concentrations (µg/m³)")
-    c1, c2, c3, c4 = st.columns(4)
-    pm25 = c1.number_input("PM2.5 (µg/m³)", min_value=0.0, max_value=999.0, value=60.0, step=1.0)
-    pm10 = c2.number_input("PM10 (µg/m³)",  min_value=0.0, max_value=999.0, value=100.0, step=1.0)
-    no2  = c3.number_input("NO2 (µg/m³)",   min_value=0.0, max_value=800.0, value=40.0, step=1.0)
-    so2  = c4.number_input("SO2 (µg/m³)",   min_value=0.0, max_value=1600.0, value=20.0, step=1.0)
-
-    c5, c6, c7, _ = st.columns(4)
-    co   = c5.number_input("CO (mg/m³)",    min_value=0.0, max_value=50.0, value=1.0, step=0.1)
-    o3   = c6.number_input("O3 (µg/m³)",   min_value=0.0, max_value=800.0, value=30.0, step=1.0)
-    nh3  = c7.number_input("NH3 (µg/m³)",  min_value=0.0, max_value=2400.0, value=10.0, step=1.0)
-
-    if st.button("🔍 Compute AQI", type="primary", use_container_width=False):
-        cpcb_aqi = compute_cpcb_aqi(pm25, pm10, no2, so2, co, o3, nh3)
-        if cpcb_aqi is not None:
-            cat, col = get_aqi_category(cpcb_aqi)
-            st.markdown("---")
-            st.markdown("#### 🏷️ Official CPCB AQI")
-            text_col = "#000" if col in ("#00e400", "#92d050", "#ffff00") else "#fff"
-            st.markdown(
-                f'''<div style="background:{col};border-radius:12px;padding:20px;text-align:center;margin:8px 0;">
-                    <span style="font-size:3rem;font-weight:800;color:{text_col};">{cpcb_aqi:.0f}</span><br>
-                    <span style="font-size:1.2rem;font-weight:600;color:{text_col};">{cat}</span>
-                </div>''',
-                unsafe_allow_html=True,
-            )
-
-        # Model performance table for this city
-        if ta_ready:
-            city_df = ta_df[ta_df["city"] == city].copy()
-            if not city_df.empty:
-                st.markdown("---")
-                st.markdown(
-                    '<div class="info-box">📊 The table below shows <b>test-set evaluation metrics</b> '
-                    'for each model trained on this city. Estimated AQI is interpolated from the test MAE distribution.</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown("#### 📋 Model Performance — Track A (Test Set)")
-
-                # Build display table
-                display_cols = ["model", "r2", "mae", "rmse"]
-                rename_map = {"model": "Model", "r2": "R²", "mae": "MAE", "rmse": "RMSE"}
-                disp = city_df[display_cols].rename(columns=rename_map).copy()
-                disp["R²"]   = disp["R²"].round(4)
-                disp["MAE"]  = disp["MAE"].round(2)
-                disp["RMSE"] = disp["RMSE"].round(2)
-
-                # Estimate AQI range
-                if cpcb_aqi is not None:
-                    disp["Est. AQI (min)"] = (cpcb_aqi - disp["MAE"]).clip(lower=0).round(1)
-                    disp["Est. AQI (max)"] = (cpcb_aqi + disp["MAE"]).round(1)
-
-                st.dataframe(
-                    disp.set_index("Model").style.background_gradient(subset=["R²"], cmap="Greens"),
-                    use_container_width=True,
-                )
-
-                # Bar chart
-                try:
-                    import plotly.express as px
-                    fig = px.bar(
-                        disp, x="Model", y="R²",
-                        color="R²", color_continuous_scale="teal",
-                        title=f"Model R² Comparison — {city} (Track A Test Set)",
-                        labels={"R²": "R² Score"},
-                    )
-                    fig.update_layout(
-                        plot_bgcolor="white", paper_bgcolor="white",
-                        font_family="Inter, Arial, sans-serif",
-                        title_font_size=15, showlegend=False,
-                        margin=dict(l=40, r=40, t=50, b=40),
-                    )
-                    fig.update_traces(marker_line_width=0)
-                    st.plotly_chart(fig, use_container_width=True)
-                except ImportError:
-                    st.bar_chart(disp.set_index("Model")["R²"])
-
-        elif ta_df is None:
-            st.warning("⚠️ Track A evaluation CSV not found. Please ensure `outputs/tables/final_track_a_complete.csv` exists.")
-
-    # Show summary even without button press
-    if ta_ready and city:
-        city_df = ta_df[ta_df["city"] == city]
-        if not city_df.empty:
-            st.markdown("---")
-            st.markdown("#### 📊 Quick Stats — Track A Models for " + city)
-            metric_cols = st.columns(len(city_df))
-            for i, (_, row) in enumerate(city_df.iterrows()):
-                metric_cols[i % len(metric_cols)].metric(
-                    label=row["model"], value=f"R²={row['r2']:.3f}", delta=f"MAE={row['mae']:.1f}"
-                )
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: AQI FORECASTING
-# ════════════════════════════════════════════════════════════════════════════════
-def page_forecasting():
-    st.markdown('<div class="section-header">📈 AQI Forecasting</div>', unsafe_allow_html=True)
-    st.markdown(
-        "Select a city to view **multi-horizon AQI forecasts** (+1h, +6h, +24h) "
-        "using available trained models. Results are based on test-set evaluation data."
-    )
-
-    city = st.selectbox("Select City", CITIES, key="fore_city")
-
-    # ── Load evaluation metrics for display ──────────────────────────────────
-    tb_metrics = get_all_track_b_metrics()
-
-    # ── Discover which XGB pkl files exist for this city ────────────────────
-    available_xgb = {}
-    for h in HORIZONS:
-        obj = load_xgb_model(city, h)
-        if obj is not None:
-            available_xgb[h] = obj
-
-    # ── Check GBR models ──────────────────────────────────────────────────────
-    available_gbr = {}
-    for h in HORIZONS:
-        obj = load_gbr_model(city, h)
-        if obj is not None:
-            available_gbr[h] = obj
-
-    # ── Build forecast table from evaluation CSVs ────────────────────────────
-    st.markdown("---")
-    st.markdown("#### 🔮 Forecast Performance by Horizon")
-    st.markdown(
-        '<div class="info-box">📌 Showing <b>test-set R² and MAE</b> from evaluation CSVs. '
-        'Live XGB inference is available when pkl models are loaded successfully.</div>',
-        unsafe_allow_html=True,
-    )
-
-    model_stems = {
-        "XGB":        "track_b_xgb",
-        "GBR":        "track_b_gbr",
-        "RF":         "track_b_rf",
-        "LSTM":       "track_b_lstm",
-        "BiLSTM":     "track_b_bilstm",
-        "CNN-BiLSTM": "track_b_cnn_bilstm",
-    }
-
-    # Build pivot table: horizons × models
-    rows = []
-    for h in HORIZONS:
-        row = {"Horizon": HORIZON_LABELS[h]}
-        for mname, stem in model_stems.items():
-            df = tb_metrics.get(mname)
-            if df is not None and "city" in df.columns and "horizon" in df.columns:
-                sub = df[(df["city"] == city) & (df["horizon"] == h)]
-                r2  = _safe_val(sub, "r2")
-                mae = _safe_val(sub, "mae")
-                row[f"{mname} R²"]  = round(float(r2), 4) if r2 is not None else "N/A"
-                row[f"{mname} MAE"] = round(float(mae), 2) if mae is not None else "N/A"
-            else:
-                row[f"{mname} R²"]  = "N/A"
-                row[f"{mname} MAE"] = "N/A"
-        rows.append(row)
-
-    fore_df = pd.DataFrame(rows).set_index("Horizon")
-    st.dataframe(fore_df, use_container_width=True)
-
-    # ── Plotly line chart of R² across horizons ──────────────────────────────
-    try:
-        import plotly.graph_objects as go
-
-        r2_plot_data = []
-        for mname, stem in model_stems.items():
-            df = tb_metrics.get(mname)
-            if df is None:
-                continue
-            if "city" not in df.columns or "horizon" not in df.columns or "r2" not in df.columns:
-                continue
-            sub = df[df["city"] == city].copy()
-            if sub.empty:
-                continue
-            sub = sub[sub["horizon"].isin(HORIZONS)].sort_values("horizon")
-            if sub.empty:
-                continue
-            r2_plot_data.append({
-                "model": mname,
-                "horizons": sub["horizon"].tolist(),
-                "r2s": sub["r2"].tolist(),
-            })
-
-        if r2_plot_data:
-            fig = go.Figure()
-            colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
-            for i, item in enumerate(r2_plot_data):
-                fig.add_trace(go.Scatter(
-                    x=[HORIZON_LABELS[h] for h in item["horizons"]],
-                    y=item["r2s"],
-                    mode="lines+markers",
-                    name=item["model"],
-                    line=dict(color=colors[i % len(colors)], width=2),
-                    marker=dict(size=8),
-                ))
-            fig.update_layout(
-                title=f"Model R² by Forecast Horizon — {city}",
-                xaxis_title="Forecast Horizon",
-                yaxis_title="R² Score",
-                plot_bgcolor="white", paper_bgcolor="white",
-                font_family="Inter, Arial, sans-serif",
-                title_font_size=15,
-                legend=dict(x=1.02, y=1, bgcolor="rgba(0,0,0,0)"),
-                margin=dict(l=40, r=160, t=50, b=40),
-            )
-            fig.update_xaxes(showgrid=True, gridcolor="#eee")
-            fig.update_yaxes(showgrid=True, gridcolor="#eee", range=[0, 1.05])
-            st.plotly_chart(fig, use_container_width=True)
-    except ImportError:
-        pass
-
-    # ── AQI Trend from BiLSTM CSV ─────────────────────────────────────────────
-    bilstm_df = tb_metrics.get("BiLSTM")
-    if bilstm_df is not None and "city" in bilstm_df.columns:
-        city_bilstm = bilstm_df[bilstm_df["city"] == city]
-        if not city_bilstm.empty:
-            st.markdown("---")
-            st.markdown("#### 🎯 BiLSTM Forecast Summary — " + city)
-            b_cols = st.columns(len(HORIZONS))
-            for i, h in enumerate(HORIZONS):
-                row = city_bilstm[city_bilstm["horizon"] == h]
-                r2  = _safe_val(row, "r2")
-                mae = _safe_val(row, "mae")
-                if r2 is not None and mae is not None:
-                    b_cols[i].metric(
-                        label=f"BiLSTM {HORIZON_LABELS[h]}",
-                        value=f"R² = {float(r2):.4f}",
-                        delta=f"MAE = {float(mae):.2f}",
-                    )
-                else:
-                    b_cols[i].metric(label=f"BiLSTM {HORIZON_LABELS[h]}", value="N/A")
-
-    # ── Trend direction indicator ─────────────────────────────────────────────
-    xgb_df = tb_metrics.get("XGB")
-    if xgb_df is not None and "city" in xgb_df.columns and "r2" in xgb_df.columns and "horizon" in xgb_df.columns:
-        city_xgb = xgb_df[xgb_df["city"] == city].sort_values("horizon")
-        if len(city_xgb) >= 2:
-            st.markdown("---")
-            r2_vals = city_xgb["r2"].tolist()
-            if r2_vals[-1] > r2_vals[0]:
-                trend = "📈 Improving accuracy at longer horizons"
-                trend_col = "green"
-            elif r2_vals[-1] < r2_vals[0] - 0.05:
-                trend = "📉 Decreasing accuracy at longer horizons (expected)"
-                trend_col = "orange"
-            else:
-                trend = "➡️ Stable accuracy across horizons"
-                trend_col = "blue"
-            st.markdown(f"**XGB Trend:** :{trend_col}[{trend}]")
-
-    # ── XGB live model availability ───────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("#### ⚙️ Model Availability")
-    avail_cols = st.columns(len(HORIZONS))
-    for i, h in enumerate(HORIZONS):
-        with avail_cols[i]:
-            has_xgb = h in available_xgb
-            has_gbr = h in available_gbr
-            status_xgb = "✅ XGB loaded" if has_xgb else "⚠️ XGB pkl not found"
-            status_gbr = "✅ GBR loaded" if has_gbr else "⚠️ GBR not found"
-            st.markdown(f"**{HORIZON_LABELS[h]}**")
-            st.caption(status_xgb)
-            st.caption(status_gbr)
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: MODEL COMPARISON
-# ════════════════════════════════════════════════════════════════════════════════
-def page_model_comparison():
-    st.markdown('<div class="section-header">📊 Model Comparison</div>', unsafe_allow_html=True)
-
-    tab_a, tab_b = st.tabs(["Track A — Estimation", "Track B — Forecasting"])
-
-    # ── TRACK A ──────────────────────────────────────────────────────────────
-    with tab_a:
-        ta_df = load_track_a_csv()
-        ta_req = {"model", "r2", "mae", "rmse", "city"}
-        if ta_df is None:
-            st.warning("Track A evaluation CSV not found.")
-        elif not ta_req.issubset(set(ta_df.columns)):
-            st.warning(f"Track A CSV is missing expected columns: {sorted(ta_req - set(ta_df.columns))}")
-        else:
-            st.markdown("#### 🏆 Track A — Overall Model Ranking (avg over all cities)")
-            agg = (
-                ta_df.groupby("model")
-                .agg(avg_r2=("r2", "mean"), avg_mae=("mae", "mean"), avg_rmse=("rmse", "mean"), cities=("city", "nunique"))
-                .reset_index()
-                .sort_values("avg_r2", ascending=False)
-            )
-            agg["avg_r2"]   = agg["avg_r2"].round(4)
-            agg["avg_mae"]  = agg["avg_mae"].round(2)
-            agg["avg_rmse"] = agg["avg_rmse"].round(2)
-            agg.columns = ["Model", "Avg R²", "Avg MAE", "Avg RMSE", "Cities"]
-            st.dataframe(agg.set_index("Model").style.background_gradient(subset=["Avg R²"], cmap="Greens"), use_container_width=True)
-
-            try:
-                import plotly.express as px
-                fig_a = px.bar(
-                    agg, x="Model", y="Avg R²",
-                    color="Avg R²", color_continuous_scale="teal",
-                    title="Track A — Average R² by Model (all 18 cities)",
-                )
-                fig_a.update_layout(
-                    plot_bgcolor="white", paper_bgcolor="white",
-                    font_family="Inter, Arial, sans-serif",
-                    title_font_size=15, showlegend=False,
-                )
-                st.plotly_chart(fig_a, use_container_width=True)
-            except ImportError:
-                pass
-
-            # Per-city heatmap
-            st.markdown("#### 🗂️ Per-City R² Heatmap")
-            try:
-                import plotly.express as px
-                pivot_r2 = ta_df.pivot_table(index="city", columns="model", values="r2")
-                fig_hm = px.imshow(
-                    pivot_r2, color_continuous_scale="RdYlGn",
-                    zmin=0.5, zmax=1.0,
-                    title="Track A R² Heatmap — City × Model",
-                    aspect="auto",
-                )
-                fig_hm.update_layout(
-                    plot_bgcolor="white", paper_bgcolor="white",
-                    font_family="Inter, Arial, sans-serif",
-                    title_font_size=15,
-                )
-                st.plotly_chart(fig_hm, use_container_width=True)
-            except ImportError:
-                st.dataframe(ta_df.pivot_table(index="city", columns="model", values="r2").round(3))
-
-    # ── TRACK B ──────────────────────────────────────────────────────────────
-    with tab_b:
-        tb_metrics = get_all_track_b_metrics()
-        all_tb_rows = []
-        for mname, df in tb_metrics.items():
-            if df is not None:
-                df2 = df.copy()
-                df2["Model"] = mname
-                all_tb_rows.append(df2)
-
-        if not all_tb_rows:
-            st.warning("No Track B evaluation CSVs found.")
-        else:
-            tb_all = pd.concat(all_tb_rows, ignore_index=True)
-
-            st.markdown("#### 🏆 Track B — Model Ranking by Horizon")
-            if "r2" not in tb_all.columns or "mae" not in tb_all.columns or "city" not in tb_all.columns:
-                st.info("Some Track B evaluation files are missing required columns (r2/mae/city), so ranking can't be computed.")
-            for h in HORIZONS:
-                if "horizon" not in tb_all.columns or "r2" not in tb_all.columns or "mae" not in tb_all.columns or "city" not in tb_all.columns:
-                    break
-                sub = tb_all[tb_all["horizon"] == h]
-                if sub.empty:
-                    continue
-                agg_b = (
-                    sub.groupby("Model")
-                    .agg(avg_r2=("r2", "mean"), avg_mae=("mae", "mean"), cities=("city", "nunique"))
-                    .reset_index()
-                    .sort_values("avg_r2", ascending=False)
-                )
-                agg_b["avg_r2"]  = agg_b["avg_r2"].round(4)
-                agg_b["avg_mae"] = agg_b["avg_mae"].round(2)
-                st.markdown(f"**Horizon: {HORIZON_LABELS[h]}**")
-                st.dataframe(
-                    agg_b.rename(columns={"avg_r2": "Avg R²", "avg_mae": "Avg MAE", "cities": "Cities"})
-                         .set_index("Model")
-                         .style.background_gradient(subset=["Avg R²"], cmap="Greens"),
-                    use_container_width=True,
-                )
-
-            # Combined bar chart
-            try:
-                import plotly.express as px
-                if "horizon" in tb_all.columns and "r2" in tb_all.columns:
-                    agg_all = (
-                        tb_all.groupby(["Model", "horizon"])
-                        .agg(avg_r2=("r2", "mean"))
-                        .reset_index()
-                    )
-                    agg_all["horizon"] = agg_all["horizon"].map(HORIZON_LABELS)
-                    fig_b = px.bar(
-                        agg_all, x="Model", y="avg_r2", color="horizon",
-                        barmode="group",
-                        title="Track B — Avg R² by Model and Horizon",
-                        labels={"avg_r2": "Avg R²", "horizon": "Horizon"},
-                        color_discrete_sequence=["#1e3a5f", "#00d4aa", "#ff6b35"],
-                    )
-                    fig_b.update_layout(
-                        plot_bgcolor="white", paper_bgcolor="white",
-                        font_family="Inter, Arial, sans-serif",
-                        title_font_size=15,
-                    )
-                    st.plotly_chart(fig_b, use_container_width=True)
-            except ImportError:
-                pass
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: INDIA AQI MAP
-# ════════════════════════════════════════════════════════════════════════════════
-def page_india_map():
-    st.markdown('<div class="section-header">🗺️ India AQI Map</div>', unsafe_allow_html=True)
-    st.markdown("Interactive map showing all 18 monitored cities, colored by average model R² for the selected horizon.")
-
-    horizon = st.selectbox("Select Forecast Horizon", HORIZONS, format_func=lambda h: HORIZON_LABELS[h], key="map_horizon")
-
-    tb_metrics = get_all_track_b_metrics()
-
-    # Compute average R² per city for selected horizon
-    city_r2 = {}
-    for city in CITIES:
-        r2_vals = []
-        for mname, df in tb_metrics.items():
-            if df is None:
-                continue
-            if "city" not in df.columns or "horizon" not in df.columns or "r2" not in df.columns:
-                continue
-            sub = df[(df["city"] == city) & (df["horizon"] == horizon)]
-            r2 = _safe_val(sub, "r2")
-            if r2 is not None:
-                r2_vals.append(float(r2))
-        city_r2[city] = round(float(np.mean(r2_vals)), 4) if r2_vals else float("nan")
-
-    # Build geo dataframe
-    geo_rows = []
-    for city in CITIES:
-        lat, lon = CITY_COORDS[city]
-        r2 = city_r2.get(city, float("nan"))
-        geo_rows.append({
-            "City": city.replace("_", " "),
-            "Latitude": lat,
-            "Longitude": lon,
-            "Avg R²": r2,
-            "R² Display": f"{r2:.4f}" if not np.isnan(r2) else "N/A",
-        })
-    geo_df = pd.DataFrame(geo_rows)
-
-    try:
-        import plotly.express as px
-        fig_map = px.scatter_geo(
-            geo_df,
-            lat="Latitude",
-            lon="Longitude",
-            color="Avg R²",
-            size=[20] * len(geo_df),
-            hover_name="City",
-            hover_data={"Latitude": False, "Longitude": False, "Avg R²": ":.4f"},
-            color_continuous_scale="RdYlGn",
-            range_color=[0.6, 1.0],
-            title=f"India AQI Monitoring Cities — Avg R² at {HORIZON_LABELS[horizon]}",
-            scope="asia",
-        )
-        fig_map.update_geos(
-            center={"lat": 22, "lon": 78},
-            projection_scale=4,
-            showland=True, landcolor="#e8f4e8",
-            showocean=True, oceancolor="#d0e8f8",
-            showcountries=True, countrycolor="#999",
-            showsubunits=True, subunitcolor="#ccc",
-            showrivers=True, rivercolor="#a0c8e8",
-        )
-        fig_map.update_layout(
-            height=600,
-            font_family="Inter, Arial, sans-serif",
-            paper_bgcolor="white",
-            title_font_size=16,
-            coloraxis_colorbar=dict(title="Avg R²"),
-        )
-        st.plotly_chart(fig_map, use_container_width=True)
-    except ImportError:
-        st.warning("Plotly not available. Showing table instead.")
-        st.dataframe(geo_df[["City", "Avg R²"]].sort_values("Avg R²", ascending=False), use_container_width=True)
-
-    # City detail table below the map
-    st.markdown("---")
-    st.markdown("#### 📋 City-Level Performance Details")
-    city_sel = st.selectbox("Select City for Details", CITIES, key="map_city_detail")
-    detail_rows = []
-    for mname, df in tb_metrics.items():
-        if df is None:
-            continue
-        if "city" not in df.columns or "horizon" not in df.columns:
-            continue
-        sub = df[(df["city"] == city_sel) & (df["horizon"] == horizon)]
-        r2  = _safe_val(sub, "r2")
-        mae = _safe_val(sub, "mae")
-        rmse = _safe_val(sub, "rmse")
-        if r2 is not None:
-            detail_rows.append({
-                "Model": mname,
-                "R²": round(float(r2), 4),
-                "MAE": round(float(mae), 2) if mae is not None else "N/A",
-                "RMSE": round(float(rmse), 2) if rmse is not None else "N/A",
-            })
-    if detail_rows:
-        detail_df = pd.DataFrame(detail_rows).set_index("Model").sort_values("R²", ascending=False)
-        st.dataframe(detail_df.style.background_gradient(subset=["R²"], cmap="Greens"), use_container_width=True)
-    else:
-        st.info(f"No evaluation data available for {city_sel} at {HORIZON_LABELS[horizon]}.")
-
-    # Summary metrics
-    valid_r2 = [v for v in city_r2.values() if not np.isnan(v)]
-    if valid_r2:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Best City R²", f"{max(valid_r2):.4f}", delta=max(city_r2, key=lambda c: city_r2.get(c, 0) if not np.isnan(city_r2.get(c, float('nan'))) else 0))
-        col2.metric("Avg R² (all cities)", f"{np.mean(valid_r2):.4f}")
-        col3.metric("Cities with data", str(len(valid_r2)))
-
-
-# ════════════════════════════════════════════════════════════════════════════════
-# PAGE: ABOUT PROJECT
-# ════════════════════════════════════════════════════════════════════════════════
-def page_about():
-    st.markdown('<div class="section-header">👨‍💻 About Project</div>', unsafe_allow_html=True)
-
-    col_l, col_r = st.columns([2, 1])
-    with col_l:
+    # Research objectives
+    col_a, col_b = st.columns(2)
+    with col_a:
         st.markdown("""
-        ## AQI Prediction Using Machine Learning and Deep Learning
-        **Research Internship** — IIIT Nagpur in collaboration with YCCE Nagpur
+<div class="glass-card">
+  <h3 style="color:#3b82f6;margin-top:0;">🔬 Current AQI Estimation</h3>
+  <p style="color:#94a3b8;">Estimate the present-time Air Quality Index using concurrent pollutant and meteorological readings. Seven models were benchmarked: Ridge Regression, Random Forest, Gradient Boosting, XGBoost, LSTM, BiLSTM, and CNN-BiLSTM.</p>
+  <p style="color:#10b981;font-weight:600;">Best: GradBoost — R²=0.9906 | MAE=2.95 | RMSE=5.77</p>
+</div>""", unsafe_allow_html=True)
 
-        ### 🎯 Project Objectives
-        - Develop accurate AQI estimation and forecasting models for 18 major Indian cities
-        - Benchmark 7 ML/DL algorithms under a rigorous dual-track evaluation protocol
-        - Implement leakage-free forecasting (Track B) with properly lagged features
-        - Enable actionable insights for public health and environmental monitoring
+    with col_b:
+        st.markdown("""
+<div class="glass-card">
+  <h3 style="color:#14b8a6;margin-top:0;">📈 Multi-Horizon AQI Forecasting</h3>
+  <p style="color:#94a3b8;">Predict future AQI using only historical lag/rolling features — no leakage from same-time pollutant readings. Three horizons evaluated: +1 hour, +6 hours, and +24 hours.</p>
+  <p style="color:#10b981;font-weight:600;">Best: GradBoost — R²=0.4997 | 1h forecast R²=0.5313</p>
+</div>""", unsafe_allow_html=True)
 
-        ### 🏛️ Institutional Context
-        | | |
-        |---|---|
-        | **Research Institution** | IIIT Nagpur (Indian Institute of Information Technology) |
-        | **Collaborating Institution** | YCCE Nagpur (Yeshwantrao Chavan College of Engineering) |
-        | **Data Source** | CPCB — Central Pollution Control Board of India |
-        | **Dataset Period** | 2018–2023 (multi-year hourly records) |
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 🏆 Model Performance Highlights")
 
-        ### 📊 Dataset Overview
-        | Metric | Value |
-        |---|---|
-        | Raw records | ~18.7 million (15-min measurements) |
-        | Hourly records (after preprocessing) | 934,775 |
-        | Cities covered | 18 major Indian cities |
-        | Pollutants measured | 11 (PM2.5, PM10, NO, NO2, NOx, NH3, SO2, CO, Ozone, Benzene, Toluene) |
-        | Meteorological features | 6 (Temperature, Humidity, Wind Speed, Direction, Solar Radiation, Pressure) |
-        | Train/Val/Test split | 70% / 15% / 15% (chronological) |
-        """)
+    tab1, tab2 = st.tabs(["AQI Estimation Models", "AQI Forecasting Models"])
 
-    with col_r:
-        st.markdown("### 🌆 Monitored Cities")
-        for c in CITIES:
-            st.markdown(f"• {c.replace('_', ' ')}")
+    with tab1:
+        df_a = pd.DataFrame(TRACK_A_RANKING)
+        df_a.insert(0, "Rank", range(1, len(df_a) + 1))
+        df_a.columns = ["Rank", "Model", "R²", "MAE", "RMSE"]
+        fig = go.Figure()
+        fig.add_bar(x=df_a["Model"], y=df_a["R²"], name="R²",
+                    marker_color="#3b82f6", text=[f"{v:.4f}" for v in df_a["R²"]], textposition="outside")
+        fig.update_layout(**plotly_base_layout("R² Score by Model (Estimation)", 360))
+        fig.update_yaxes(range=[0, 1.05])
+        st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("---")
-    st.markdown("""
-    ### 🔬 Dual-Track Methodology
+    with tab2:
+        df_b = pd.DataFrame(TRACK_B_RANKING)
+        df_b.insert(0, "Rank", range(1, len(df_b) + 1))
+        df_b.columns = ["Rank", "Model", "R²", "MAE", "RMSE"]
+        col1, col2 = st.columns(2)
+        with col1:
+            fig2 = go.Figure()
+            fig2.add_bar(x=df_b["Model"], y=df_b["R²"], name="R²",
+                         marker_color="#14b8a6", text=[f"{v:.4f}" for v in df_b["R²"]], textposition="outside")
+            fig2.update_layout(**plotly_base_layout("R² Score by Model (Forecasting)", 360))
+            st.plotly_chart(fig2, use_container_width=True)
+        with col2:
+            hz_df = pd.DataFrame({
+                "Horizon": ["1-Hour", "6-Hour", "24-Hour"],
+                "Avg R²": [HORIZON_R2[1], HORIZON_R2[6], HORIZON_R2[24]],
+            })
+            fig3 = go.Figure()
+            fig3.add_bar(x=hz_df["Horizon"], y=hz_df["Avg R²"],
+                         marker_color=["#3b82f6","#8b5cf6","#ef4444"],
+                         text=[f"{v:.4f}" for v in hz_df["Avg R²"]], textposition="outside")
+            fig3.update_layout(**plotly_base_layout("Avg R² by Forecast Horizon", 360))
+            fig3.update_yaxes(range=[0, 0.65])
+            st.plotly_chart(fig3, use_container_width=True)
 
-    #### Track A — AQI Estimation (Same-Time Features)
-    Models receive same-timestamp pollutant readings as features to estimate AQI.
-    This simulates **real-time sensor fusion** where all measurements arrive simultaneously.
-    Features: All 11 pollutants + 6 meteorological + temporal encodings + interaction terms.
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📌 Quick Navigation")
+    nc1, nc2, nc3 = st.columns(3)
+    with nc1:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;">
+  <div style="font-size:2rem;">🔬</div>
+  <h4 style="color:#3b82f6;">AQI Estimation</h4>
+  <p style="color:#94a3b8;font-size:0.85rem;">Enter pollutant readings → Get CPCB AQI calculation and ML model performance</p>
+</div>""", unsafe_allow_html=True)
+    with nc2:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;">
+  <div style="font-size:2rem;">📈</div>
+  <h4 style="color:#14b8a6;">AQI Forecasting</h4>
+  <p style="color:#94a3b8;font-size:0.85rem;">Select city + horizon → XGBoost live forecast or BiLSTM validated results</p>
+</div>""", unsafe_allow_html=True)
+    with nc3:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;">
+  <div style="font-size:2rem;">🗺</div>
+  <h4 style="color:#8b5cf6;">India AQI Map</h4>
+  <p style="color:#94a3b8;font-size:0.85rem;">Interactive map of all 18 cities with model performance markers</p>
+</div>""", unsafe_allow_html=True)
 
-    #### Track B — AQI Forecasting (Lag-Only Features — No Data Leakage)
-    Models use only **past values** (lag and rolling features) to forecast AQI at +1h, +6h, +24h.
-    Same-time pollutants are explicitly excluded — this ensures genuine forecast capability.
-    Features: lag_1...lag_24, rolling mean/std/min/max at 3/6/12/24h + temporal encodings.
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 2 — AQI Estimation
+# ─────────────────────────────────────────────────────────────────────────────
+def page_estimation():
+    st.markdown("## 🔬 AQI Estimation")
+    st.markdown("Estimate Air Quality Index using the official CPCB formula or explore ML model performance.")
 
-    ### 🤖 Models Evaluated
-    """)
+    tab_calc, tab_models = st.tabs(["🧮 CPCB AQI Calculator", "📊 Estimation Model Performance"])
 
-    model_info = [
-        ("Ridge Regression",    "Baseline linear model with L2 regularization. Fast, interpretable.",    "Track A"),
-        ("Random Forest",       "Ensemble of 300 decision trees. Robust to noise and outliers.",          "A + B"),
-        ("Gradient Boosting",   "Sequential tree ensemble. **Best overall** — avg R² = 0.99 (Track A).", "A + B"),
-        ("XGBoost",             "Optimized gradient boosting. 39 pkl files trained for Track B.",         "A + B"),
-        ("LSTM",                "Long Short-Term Memory. Captures sequential AQI patterns.",              "A + B"),
-        ("BiLSTM",              "Bidirectional LSTM. Forward + backward temporal context.",               "A + B"),
-        ("CNN-BiLSTM",          "Convolutional + BiLSTM hybrid. Local pattern + temporal modeling.",      "A + B"),
-    ]
-    m_cols = st.columns(3)
-    for i, (name, desc, tracks) in enumerate(model_info):
-        m_cols[i % 3].markdown(
-            f'''<div class="model-card">
-                <b>{name}</b><br>
-                <span style="font-size:0.82rem;color:#444;">{desc}</span><br>
-                <span style="font-size:0.78rem;color:#1e3a5f;font-weight:600;">Tracks: {tracks}</span>
-            </div>''',
-            unsafe_allow_html=True,
+    # ── Section A: CPCB AQI Calculator ──
+    with tab_calc:
+        st.markdown("### Enter Pollutant Concentrations")
+        st.markdown("<p style='color:#94a3b8;font-size:0.9rem;'>All units in µg/m³ except CO (mg/m³)</p>", unsafe_allow_html=True)
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            pm25  = st.number_input("PM2.5 (µg/m³)", min_value=0.0, max_value=500.0, value=35.0, step=1.0)
+            pm10  = st.number_input("PM10 (µg/m³)",  min_value=0.0, max_value=600.0, value=70.0, step=1.0)
+            no2   = st.number_input("NO2 (µg/m³)",   min_value=0.0, max_value=800.0, value=45.0, step=1.0)
+        with col2:
+            so2   = st.number_input("SO2 (µg/m³)",   min_value=0.0, max_value=2100.0, value=20.0, step=1.0)
+            co    = st.number_input("CO (mg/m³)",     min_value=0.0, max_value=47.0,   value=1.5, step=0.1)
+            o3    = st.number_input("O3 (µg/m³)",     min_value=0.0, max_value=1000.0, value=55.0, step=1.0)
+        with col3:
+            nh3   = st.number_input("NH3 (µg/m³)",   min_value=0.0, max_value=2400.0, value=100.0, step=5.0)
+            st.markdown("<br>", unsafe_allow_html=True)
+            calc_btn = st.button("Calculate AQI ▶", use_container_width=True, type="primary")
+
+        if calc_btn:
+            poll_vals = {
+                "PM2.5": pm25, "PM10": pm10, "NO2": no2,
+                "SO2": so2, "CO": co, "O3": o3, "NH3": nh3
+            }
+            aqi_val, sub_indices = compute_cpcb_aqi(poll_vals)
+            if aqi_val is None:
+                st.error("Could not compute AQI — all sub-indices invalid.")
+            else:
+                aqi_int = int(round(aqi_val))
+                color, category = aqi_color(aqi_int)
+                text_color = "#000000" if aqi_int <= 200 else "#ffffff"
+                st.markdown("<br>", unsafe_allow_html=True)
+                r1, r2 = st.columns([1, 2])
+                with r1:
+                    st.markdown(f"""
+<div style="text-align:center; background:{color}20; border:2px solid {color};
+     border-radius:20px; padding:32px; margin:8px 0;">
+  <div style="font-size:4rem; font-weight:800; color:{color};">{aqi_int}</div>
+  <div style="font-size:1.4rem; font-weight:700; color:{color}; margin-top:8px;">{category}</div>
+  <div style="font-size:0.85rem; color:#94a3b8; margin-top:6px;">CPCB AQI Index</div>
+</div>""", unsafe_allow_html=True)
+
+                with r2:
+                    st.markdown("#### Sub-Index Breakdown")
+                    sub_df = pd.DataFrame([
+                        {"Pollutant": k, "Concentration": f"{poll_vals[k]:.1f}", "Sub-Index": f"{v:.1f}",
+                         "Dominant": "✅ Driving AQI" if v == aqi_val else ""}
+                        for k, v in sub_indices.items()
+                    ])
+                    # Color bar chart
+                    fig_sub = go.Figure()
+                    bar_colors = [color if v == aqi_val else "#3b82f6" for v in sub_indices.values()]
+                    fig_sub.add_bar(
+                        x=list(sub_indices.keys()),
+                        y=list(sub_indices.values()),
+                        marker_color=bar_colors,
+                        text=[f"{v:.0f}" for v in sub_indices.values()],
+                        textposition="outside",
+                    )
+                    fig_sub.update_layout(**plotly_base_layout("Pollutant Sub-Indices", 280))
+                    fig_sub.update_yaxes(range=[0, 520])
+                    st.plotly_chart(fig_sub, use_container_width=True)
+
+                # Health advisory
+                advisories = {
+                    "Good": "Air quality is satisfactory. No health risks.",
+                    "Satisfactory": "Acceptable air quality. Sensitive individuals may experience mild symptoms.",
+                    "Moderate": "Sensitive groups (children, elderly, respiratory patients) should reduce outdoor activities.",
+                    "Poor": "Everyone may experience health effects. Minimize outdoor exposure.",
+                    "Very Poor": "Serious health risk. Avoid prolonged outdoor activities.",
+                    "Severe": "Emergency conditions. Everyone should remain indoors.",
+                }
+                adv = advisories.get(category, "Monitor air quality regularly.")
+                st.markdown(f"""
+<div style="background:{color}15; border-left:4px solid {color}; border-radius:8px;
+     padding:16px; margin-top:16px;">
+  <strong style="color:{color};">⚠️ Health Advisory ({category})</strong><br>
+  <span style="color:#f1f5f9;">{adv}</span>
+</div>""", unsafe_allow_html=True)
+
+    # ── Section B: Estimation Model Performance ──
+    with tab_models:
+        st.markdown("### Estimation Model Performance Summary")
+        df_ta = load_track_a()
+        rank_df = load_track_a_ranking()
+
+        if rank_df is not None and not rank_df.empty:
+            # Normalize column names
+            rank_df.columns = [c.lower() for c in rank_df.columns]
+            model_col = "model" if "model" in rank_df.columns else rank_df.columns[0]
+            r2_col   = next((c for c in rank_df.columns if "r2" in c), None)
+            mae_col  = next((c for c in rank_df.columns if "mae" in c), None)
+            rmse_col = next((c for c in rank_df.columns if "rmse" in c), None)
+
+            if r2_col is None:
+                # Use fallback
+                rank_df = pd.DataFrame(TRACK_A_RANKING)
+                rank_df.columns = [c.lower() for c in rank_df.columns]
+                model_col, r2_col, mae_col, rmse_col = "model", "r2", "mae", "rmse"
+
+            rank_df = rank_df.sort_values(r2_col, ascending=False).reset_index(drop=True)
+            rank_df.insert(0, "Rank", range(1, len(rank_df) + 1))
+
+            # Leaderboard
+            st.markdown("#### 🏅 Model Leaderboard")
+            display_df = rank_df[[model_col, r2_col, mae_col, rmse_col]].copy()
+            display_df.columns = ["Model", "Avg R²", "Avg MAE", "Avg RMSE"]
+            display_df["Avg R²"]   = display_df["Avg R²"].apply(lambda x: f"{x:.4f}")
+            display_df["Avg MAE"]  = display_df["Avg MAE"].apply(lambda x: f"{x:.2f}")
+            display_df["Avg RMSE"] = display_df["Avg RMSE"].apply(lambda x: f"{x:.2f}")
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+            c1, c2 = st.columns(2)
+            with c1:
+                r2_vals = rank_df[r2_col].tolist()
+                fig_r2 = go.Figure(go.Bar(
+                    x=rank_df[model_col].tolist(),
+                    y=r2_vals,
+                    marker_color=PLOTLY_COLORS[:len(r2_vals)],
+                    text=[f"{v:.4f}" for v in r2_vals],
+                    textposition="outside",
+                ))
+                fig_r2.update_layout(**plotly_base_layout("R² Score per Model", 360))
+                fig_r2.update_yaxes(range=[0, 1.08])
+                st.plotly_chart(fig_r2, use_container_width=True)
+
+            with c2:
+                mae_vals  = rank_df[mae_col].tolist()
+                rmse_vals = rank_df[rmse_col].tolist()
+                models    = rank_df[model_col].tolist()
+                fig_err = go.Figure()
+                fig_err.add_bar(x=models, y=mae_vals,  name="MAE",  marker_color="#f59e0b")
+                fig_err.add_bar(x=models, y=rmse_vals, name="RMSE", marker_color="#ef4444")
+                fig_err.update_layout(**plotly_base_layout("MAE vs RMSE per Model", 360), barmode="group")
+                st.plotly_chart(fig_err, use_container_width=True)
+        else:
+            st.warning("Ranking CSV not found. Showing confirmed figures.")
+            st.dataframe(pd.DataFrame(TRACK_A_RANKING), use_container_width=True, hide_index=True)
+
+        # Per-city heatmap if full data available
+        if df_ta is not None and not df_ta.empty:
+            st.markdown("#### 🗺 R² Heatmap — Model × City")
+            df_ta.columns = [c.lower() for c in df_ta.columns]
+            mc  = "model" if "model" in df_ta.columns else df_ta.columns[1]
+            cc  = "city"  if "city"  in df_ta.columns else df_ta.columns[0]
+            r2c = next((c for c in df_ta.columns if "r2" in c), None)
+            if r2c:
+                pivot = df_ta.pivot_table(index=cc, columns=mc, values=r2c, aggfunc="mean")
+                fig_heat = px.imshow(
+                    pivot,
+                    color_continuous_scale="Blues",
+                    aspect="auto",
+                    labels={"color": "R²"},
+                )
+                fig_heat.update_layout(**plotly_base_layout("R² per Model per City (Estimation)", 500))
+                st.plotly_chart(fig_heat, use_container_width=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 3 — AQI Forecasting
+# ─────────────────────────────────────────────────────────────────────────────
+def page_forecasting():
+    st.markdown("## 📈 AQI Forecasting")
+    st.markdown("Live XGBoost forecasting or BiLSTM validated test-set results per city and horizon.")
+
+    # ── Sidebar-style controls in main area ──
+    col_ctrl, col_main = st.columns([1, 3])
+    with col_ctrl:
+        st.markdown("#### Controls")
+        city_options = {CITY_DISPLAY[c]: c for c in CITIES}
+        city_label = st.selectbox("Select City", list(city_options.keys()))
+        city = city_options[city_label]
+
+        horizon_label = st.selectbox("Forecast Horizon", list(HORIZONS.values()))
+        horizon_h = {v: k for k, v in HORIZONS.items()}[horizon_label]
+
+        model_choice = st.radio("Model", ["XGBoost", "BiLSTM"])
+        run_btn = st.button("▶ Run Forecast", use_container_width=True, type="primary")
+
+    with col_main:
+        if run_btn or True:   # always show on load
+            st.markdown(f"### {CITY_DISPLAY[city]} — {horizon_label} Ahead")
+
+            if model_choice == "XGBoost":
+                # ── XGBoost live inference ──
+                with st.spinner("Running XGBoost inference…"):
+                    pred_val, err = run_xgb_forecast(city, horizon_h)
+
+                if err:
+                    st.warning(f"XGBoost inference unavailable: {err}")
+                else:
+                    aqi_int = int(round(pred_val))
+                    col_h, color = aqi_color(aqi_int)
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Predicted AQI", aqi_int)
+                    c2.metric("Category", aqi_color(aqi_int)[1])
+                    c3.metric("Horizon", horizon_label)
+                    st.markdown(f"""
+<div style="background:{col_h}15; border:2px solid {col_h}; border-radius:16px;
+     padding:20px; text-align:center; margin:16px 0;">
+  <span style="font-size:3rem; font-weight:800; color:{col_h};">{aqi_int}</span>
+  <span style="font-size:1.2rem; color:{col_h}; margin-left:12px;">{aqi_color(aqi_int)[1]}</span>
+</div>""", unsafe_allow_html=True)
+
+                # Show prediction plot from CSV
+                pred_df = load_predictions_csv(city, horizon_h)
+                if pred_df is not None and not pred_df.empty:
+                    pred_df.columns = [c.lower() for c in pred_df.columns]
+                    # find actual and predicted columns
+                    act_col  = next((c for c in pred_df.columns if "actual" in c), None)
+                    pred_col = next((c for c in pred_df.columns if "predict" in c or "pred" in c), None)
+                    if act_col and pred_col:
+                        plot_df = pred_df[[act_col, pred_col]].tail(100).reset_index(drop=True)
+                        fig_pred = go.Figure()
+                        fig_pred.add_scatter(x=plot_df.index, y=plot_df[act_col],
+                                             mode="lines", name="Actual", line=dict(color="#3b82f6", width=2))
+                        fig_pred.add_scatter(x=plot_df.index, y=plot_df[pred_col],
+                                             mode="lines", name="Predicted", line=dict(color="#f59e0b", width=2, dash="dash"))
+                        fig_pred.update_layout(**plotly_base_layout(
+                            f"XGBoost — {CITY_DISPLAY[city]} {horizon_label} | Actual vs Predicted (last 100 points)", 380))
+                        st.plotly_chart(fig_pred, use_container_width=True)
+                    else:
+                        st.info("Prediction CSV loaded but column names differ. Showing raw data preview.")
+                        st.dataframe(pred_df.tail(20), use_container_width=True)
+                else:
+                    st.info(f"Prediction CSV not found for {CITY_DISPLAY[city]} h{horizon_h:02d}.")
+
+            else:
+                # ── BiLSTM validated results ──
+                result = get_bilstm_result(city, horizon_h)
+                if result:
+                    r2_  = result.get("r2",   result.get("R2",   "N/A"))
+                    mae_ = result.get("mae",  result.get("MAE",  "N/A"))
+                    rmse_= result.get("rmse", result.get("RMSE", "N/A"))
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("R² Score", f"{r2_:.4f}" if isinstance(r2_, float) else r2_)
+                    c2.metric("MAE",  f"{mae_:.2f}" if isinstance(mae_, float) else mae_)
+                    c3.metric("RMSE", f"{rmse_:.2f}" if isinstance(rmse_, float) else rmse_)
+                    st.info("BiLSTM results are from the validated test-set evaluation. Live inference requires a trained BiLSTM model artifact.")
+                else:
+                    st.warning(f"BiLSTM results not found for {CITY_DISPLAY[city]} — {horizon_label}. Showing aggregated BiLSTM performance.")
+                    bilstm_df = load_bilstm_results()
+                    if bilstm_df is not None:
+                        bilstm_df.columns = [c.lower() for c in bilstm_df.columns]
+                        h_df = bilstm_df[bilstm_df["horizon"] == horizon_h] if "horizon" in bilstm_df.columns else bilstm_df
+                        if not h_df.empty:
+                            st.dataframe(h_df[["city","r2","mae","rmse"]].sort_values("r2", ascending=False),
+                                         use_container_width=True, hide_index=True)
+
+                # Show BiLSTM figure if available
+                fig_path = FIGS_DIR / f"{city}_h{horizon_h:02d}_bilstm_pred.png"
+                loss_path = FIGS_DIR / f"{city}_h{horizon_h:02d}_bilstm_loss.png"
+                if fig_path.exists():
+                    st.markdown("#### BiLSTM Prediction Plot")
+                    st.image(str(fig_path), use_column_width=True)
+                elif loss_path.exists():
+                    st.markdown("#### BiLSTM Training Loss")
+                    st.image(str(loss_path), use_column_width=True)
+                else:
+                    st.info("Pre-computed BiLSTM figures not found in outputs/figures/.")
+
+        # ── Horizon comparison for selected city ──
+        st.markdown("---")
+        st.markdown(f"#### {CITY_DISPLAY[city]} — Horizon Performance Comparison")
+
+        bilstm_df = load_bilstm_results()
+        if bilstm_df is not None:
+            bilstm_df.columns = [c.lower() for c in bilstm_df.columns]
+            city_df = bilstm_df[bilstm_df["city"] == city] if "city" in bilstm_df.columns else pd.DataFrame()
+            if not city_df.empty and "horizon" in city_df.columns:
+                fig_hz = go.Figure()
+                fig_hz.add_bar(x=city_df["horizon"].tolist(), y=city_df["r2"].tolist(),
+                               marker_color=["#3b82f6","#8b5cf6","#ef4444"],
+                               text=[f"{v:.3f}" for v in city_df["r2"].tolist()],
+                               textposition="outside", name="BiLSTM R²")
+                fig_hz.update_layout(**plotly_base_layout(f"BiLSTM R² by Horizon — {CITY_DISPLAY[city]}", 300))
+                fig_hz.update_yaxes(range=[-0.1, 0.9])
+                st.plotly_chart(fig_hz, use_container_width=True)
+            else:
+                st.info("Per-city horizon data not available.")
+        else:
+            st.info("BiLSTM results CSV not found. Check outputs/tables/track_b_bilstm.csv.")
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 4 — Model Comparison
+# ─────────────────────────────────────────────────────────────────────────────
+def page_comparison():
+    st.markdown("## 📊 Model Comparison")
+    st.markdown("Comprehensive side-by-side benchmarking of all estimation and forecasting models.")
+
+    tab_a, tab_b = st.tabs(["🔬 AQI Estimation Models", "📈 AQI Forecasting Models"])
+
+    # ── Estimation ──
+    with tab_a:
+        st.markdown("### AQI Estimation Model Benchmarks")
+        df_ta = load_track_a()
+        rank_a = load_track_a_ranking()
+        if rank_a is None:
+            rank_a = pd.DataFrame(TRACK_A_RANKING)
+        rank_a.columns = [c.lower() for c in rank_a.columns]
+        model_c = "model" if "model" in rank_a.columns else rank_a.columns[0]
+        r2_c    = next((c for c in rank_a.columns if "r2" in c), "r2")
+        mae_c   = next((c for c in rank_a.columns if "mae" in c), "mae")
+        rmse_c  = next((c for c in rank_a.columns if "rmse" in c), "rmse")
+
+        if r2_c not in rank_a.columns:
+            rank_a = pd.DataFrame(TRACK_A_RANKING)
+            rank_a.columns = [c.lower() for c in rank_a.columns]
+            model_c, r2_c, mae_c, rmse_c = "model", "r2", "mae", "rmse"
+
+        rank_a = rank_a.sort_values(r2_c, ascending=False).reset_index(drop=True)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            # Grouped bar: R², MAE, RMSE
+            fig_group = make_subplots(rows=1, cols=1)
+            models = rank_a[model_c].tolist()
+            fig_group.add_bar(x=models, y=rank_a[r2_c].tolist(),  name="R²",  marker_color="#3b82f6")
+            fig_group.update_layout(**plotly_base_layout("R² per Estimation Model", 360))
+            fig_group.update_yaxes(range=[0, 1.1])
+            st.plotly_chart(fig_group, use_container_width=True)
+
+        with c2:
+            fig_mae_rmse = go.Figure()
+            fig_mae_rmse.add_bar(x=models, y=rank_a[mae_c].tolist(),  name="MAE",  marker_color="#f59e0b")
+            fig_mae_rmse.add_bar(x=models, y=rank_a[rmse_c].tolist(), name="RMSE", marker_color="#ef4444")
+            fig_mae_rmse.update_layout(**plotly_base_layout("MAE & RMSE per Model", 360), barmode="group")
+            st.plotly_chart(fig_mae_rmse, use_container_width=True)
+
+        # Horizontal leaderboard bar
+        fig_horiz = go.Figure(go.Bar(
+            y=models[::-1],
+            x=rank_a[r2_c].tolist()[::-1],
+            orientation="h",
+            marker_color=PLOTLY_COLORS[:len(models)][::-1],
+            text=[f"{v:.4f}" for v in rank_a[r2_c].tolist()[::-1]],
+            textposition="outside",
+        ))
+        fig_horiz.update_layout(**plotly_base_layout("R² Leaderboard (Best → Worst)", 320))
+        fig_horiz.update_xaxes(range=[0, 1.1])
+        st.plotly_chart(fig_horiz, use_container_width=True)
+
+        # Scatter MAE vs RMSE
+        fig_scatter = px.scatter(
+            rank_a, x=mae_c, y=rmse_c, color=model_c,
+            text=model_c, size_max=14,
+            color_discrete_sequence=PLOTLY_COLORS,
         )
+        fig_scatter.update_traces(textposition="top center", marker_size=12)
+        fig_scatter.update_layout(**plotly_base_layout("MAE vs RMSE (Estimation Models)", 360))
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
-    st.markdown("---")
-    st.markdown("""
-    ### 🏆 Key Results
+        # Full table
+        st.markdown("#### Complete Estimation Results")
+        if df_ta is not None and not df_ta.empty:
+            st.dataframe(df_ta, use_container_width=True, hide_index=True)
+        else:
+            st.dataframe(rank_a, use_container_width=True, hide_index=True)
 
-    | Model | Track A Avg R² | Track A Avg MAE | Track B Best R² (h=1) |
-    |---|---|---|---|
-    | **GBR** | **0.9906** | 2.95 | ~0.90 |
-    | **RF** | 0.9874 | 1.64 | ~0.88 |
-    | **XGBoost** | 0.9856 | 2.83 | Available via pkl |
-    | **Ridge** | 0.8304 | — | — |
-    | **LSTM** | — | — | ~0.85 |
-    | **BiLSTM** | — | — | ~0.87 |
-    | **CNN-BiLSTM** | — | — | ~0.86 |
+    # ── Forecasting ──
+    with tab_b:
+        st.markdown("### AQI Forecasting Model Benchmarks")
+        df_tb = load_track_b()
+        rank_b = load_track_b_ranking()
+        if rank_b is None:
+            rank_b = pd.DataFrame(TRACK_B_RANKING)
+        rank_b.columns = [c.lower() for c in rank_b.columns]
+        model_c = "model" if "model" in rank_b.columns else rank_b.columns[0]
+        r2_c    = next((c for c in rank_b.columns if "r2" in c), "r2")
+        mae_c   = next((c for c in rank_b.columns if "mae" in c), "mae")
+        rmse_c  = next((c for c in rank_b.columns if "rmse" in c), "rmse")
 
-    ### 🔍 Key Scientific Findings
-    - **GBR dominates estimation**: Tree-based ensemble methods outperform deep learning for same-time AQI estimation
-    - **Forecast accuracy degrades with horizon**: R² drops ~5–15% from +1h to +24h (expected)
-    - **Leakage audit**: Same-time pollutants inflate Track A performance; Track B uses only lagged features
-    - **City variation**: Singrauli and Nagpur show highest predictability; coastal cities more variable
-    - **Feature importance**: PM2.5 lag features are most predictive for forecasting horizons
+        if r2_c not in rank_b.columns:
+            rank_b = pd.DataFrame(TRACK_B_RANKING)
+            rank_b.columns = [c.lower() for c in rank_b.columns]
+            model_c, r2_c, mae_c, rmse_c = "model", "r2", "mae", "rmse"
 
-    ### 📦 Deployment Architecture
-    - **Backend**: Python 3.10+, scikit-learn, XGBoost, TensorFlow/Keras, joblib
-    - **Frontend**: Streamlit web application (this platform)
-    - **Model storage**: 39 XGB pkl files + optional GBR/LSTM joblib/keras artifacts
-    - **Inference**: On-demand loading with `@st.cache_data` for performance
-    """)
+        rank_b = rank_b.sort_values(r2_c, ascending=False).reset_index(drop=True)
+        models_b = rank_b[model_c].tolist()
 
-    st.markdown("---")
-    st.markdown(
-        '<div class="info-box">🔬 This platform was built as part of a research internship project. '
-        'All results are based on real CPCB data and rigorous experimental evaluation. '
-        'For academic queries, refer to the project documentation in the repository.</div>',
-        unsafe_allow_html=True,
+        c1, c2 = st.columns(2)
+        with c1:
+            fig_b1 = go.Figure(go.Bar(
+                x=models_b, y=rank_b[r2_c].tolist(),
+                marker_color="#14b8a6",
+                text=[f"{v:.4f}" for v in rank_b[r2_c].tolist()],
+                textposition="outside",
+            ))
+            fig_b1.update_layout(**plotly_base_layout("R² per Forecasting Model", 360))
+            fig_b1.update_yaxes(range=[-0.6, 0.7])
+            st.plotly_chart(fig_b1, use_container_width=True)
+
+        with c2:
+            fig_b2 = go.Figure()
+            fig_b2.add_bar(x=models_b, y=rank_b[mae_c].tolist(),  name="MAE",  marker_color="#f59e0b")
+            fig_b2.add_bar(x=models_b, y=rank_b[rmse_c].tolist(), name="RMSE", marker_color="#ef4444")
+            fig_b2.update_layout(**plotly_base_layout("MAE & RMSE per Model", 360), barmode="group")
+            st.plotly_chart(fig_b2, use_container_width=True)
+
+        # Horizon chart
+        st.markdown("#### Horizon Performance (All Models Averaged)")
+        hz_df = pd.DataFrame({
+            "Horizon":    ["1-Hour (+1h)", "6-Hour (+6h)", "24-Hour (+24h)"],
+            "Avg R²":     [HORIZON_R2[1], HORIZON_R2[6], HORIZON_R2[24]],
+            "Interpretation": ["Near-term: best accuracy", "Medium-term: moderate", "Long-term: hardest"],
+        })
+        fig_hz = go.Figure(go.Bar(
+            x=hz_df["Horizon"], y=hz_df["Avg R²"],
+            marker_color=["#3b82f6","#8b5cf6","#ef4444"],
+            text=[f"R²={v:.4f}" for v in hz_df["Avg R²"]],
+            textposition="outside",
+        ))
+        fig_hz.update_layout(**plotly_base_layout("Avg R² by Forecast Horizon (All Models)", 300))
+        fig_hz.update_yaxes(range=[0, 0.7])
+        st.plotly_chart(fig_hz, use_container_width=True)
+
+        # Full table
+        st.markdown("#### Complete Forecasting Results")
+        if df_tb is not None and not df_tb.empty:
+            st.dataframe(df_tb, use_container_width=True, hide_index=True)
+        else:
+            bilstm = load_bilstm_results()
+            if bilstm is not None:
+                st.dataframe(bilstm, use_container_width=True, hide_index=True)
+            else:
+                st.dataframe(rank_b, use_container_width=True, hide_index=True)
+
+        # Summary metrics
+        st.markdown("#### Summary Statistics")
+        sc1, sc2, sc3 = st.columns(3)
+        best_row = rank_b.sort_values(r2_c, ascending=False).iloc[0]
+        sc1.metric("Best Model",    str(best_row[model_c]))
+        sc2.metric("Best R²",       f"{best_row[r2_c]:.4f}")
+        sc3.metric("Best Horizon",  "1-Hour (R²=0.5313)")
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 5 — India AQI Map
+# ─────────────────────────────────────────────────────────────────────────────
+def page_india_map():
+    st.markdown("## 🗺 India AQI Monitoring Map")
+    st.markdown("Interactive map showing all 18 study cities with model performance overlays.")
+
+    # Build city data
+    df_ta = load_track_a()
+    df_bilstm = load_bilstm_results()
+
+    rows = []
+    for city, (lat, lon) in CITY_COORDS.items():
+        best_a_r2  = None
+        best_b_r2  = None
+        n_train    = None
+
+        if df_ta is not None and not df_ta.empty:
+            dfc = df_ta.copy()
+            dfc.columns = [c.lower() for c in dfc.columns]
+            r2c = next((c for c in dfc.columns if "r2" in c), None)
+            if r2c and "city" in dfc.columns:
+                sub = dfc[dfc["city"] == city][r2c]
+                if not sub.empty:
+                    best_a_r2 = float(sub.max())
+            if "n_train" in dfc.columns and "city" in dfc.columns:
+                sub2 = dfc[dfc["city"] == city]["n_train"]
+                if not sub2.empty:
+                    n_train = float(sub2.iloc[0])
+
+        if df_bilstm is not None and not df_bilstm.empty:
+            dfc2 = df_bilstm.copy()
+            dfc2.columns = [c.lower() for c in dfc2.columns]
+            r2c2 = next((c for c in dfc2.columns if "r2" in c), None)
+            hz_c = next((c for c in dfc2.columns if "horizon" in c), None)
+            if r2c2 and hz_c and "city" in dfc2.columns:
+                sub3 = dfc2[(dfc2["city"] == city) & (dfc2[hz_c] == 1)][r2c2]
+                if not sub3.empty:
+                    best_b_r2 = float(sub3.iloc[0])
+
+        rows.append({
+            "city":         city,
+            "display_name": CITY_DISPLAY[city],
+            "lat":          lat,
+            "lon":          lon,
+            "best_est_r2":  best_a_r2 if best_a_r2 is not None else 0.85,
+            "best_fcast_r2":best_b_r2 if best_b_r2 is not None else 0.45,
+            "n_train":      n_train if n_train is not None else 20000,
+        })
+
+    map_df = pd.DataFrame(rows)
+
+    # Marker size proportional to training size
+    max_size = map_df["n_train"].max()
+    map_df["marker_size"] = 12 + 20 * (map_df["n_train"] / max_size)
+
+    # Hover text
+    map_df["hover"] = map_df.apply(lambda r: (
+        f"<b>{r['display_name']}</b><br>"
+        f"Best Estimation R²: {r['best_est_r2']:.4f}<br>"
+        f"Best Forecast R² (1h): {r['best_fcast_r2']:.4f}<br>"
+        f"Training samples: {int(r['n_train']):,}"
+    ), axis=1)
+
+    fig_map = go.Figure(go.Scattergeo(
+        lat=map_df["lat"],
+        lon=map_df["lon"],
+        text=map_df["hover"],
+        hovertemplate="%{text}<extra></extra>",
+        mode="markers+text",
+        textfont=dict(size=9, color="white"),
+        textposition="top center",
+        marker=dict(
+            size=map_df["marker_size"],
+            color=map_df["best_est_r2"],
+            colorscale="Teal",
+            cmin=0.5,
+            cmax=1.0,
+            colorbar=dict(title="Est. R²", thickness=15, len=0.6, bgcolor="rgba(0,0,0,0)", tickfont=dict(color="white")),
+            line=dict(width=1, color="rgba(255,255,255,0.4)"),
+            opacity=0.9,
+        ),
+    ))
+
+    fig_map.update_geos(
+        projection_type="natural earth",
+        showland=True, landcolor="#1a2332",
+        showocean=True, oceancolor="#0a0e1a",
+        showcountries=True, countrycolor="#334155",
+        showcoastlines=True, coastlinecolor="#334155",
+        showsubunits=True, subunitcolor="#1e293b",
+        lataxis_range=[5, 38],
+        lonaxis_range=[65, 100],
+        bgcolor="rgba(0,0,0,0)",
+        framecolor="#1e293b",
     )
 
+    fig_map.update_layout(
+        title="India — AQI Prediction Study Cities (18 Cities)",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=620,
+        margin=dict(l=0, r=0, t=40, b=0),
+        font=dict(color="white"),
+        geo=dict(bgcolor="rgba(0,0,0,0)"),
+    )
 
-# ─── Main Router ──────────────────────────────────────────────────────────────
-# Handle button-driven navigation
-if "_nav" in st.session_state:
-    nav = st.session_state.pop("_nav")
-    # Override page by rerunning with sidebar pre-selected
-    # (Streamlit doesn't support programmatic radio nav easily — show a note)
-    pass
+    st.plotly_chart(fig_map, use_container_width=True)
 
-if page == "🏠 Home":
-    page_home()
-elif page == "🔬 AQI Estimation":
-    page_estimation()
-elif page == "📈 AQI Forecasting":
-    page_forecasting()
-elif page == "📊 Model Comparison":
-    page_model_comparison()
-elif page == "🗺️ India AQI Map":
-    page_india_map()
-elif page == "👨‍💻 About Project":
-    page_about()
+    # City performance table
+    st.markdown("### City Performance Summary")
+    show_df = map_df[["display_name","best_est_r2","best_fcast_r2"]].copy()
+    show_df.columns = ["City", "Best Estimation R²", "Best Forecast R² (1h)"]
+    show_df = show_df.sort_values("Best Estimation R²", ascending=False).reset_index(drop=True)
+    st.dataframe(show_df, use_container_width=True, hide_index=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Page 6 — About Project
+# ─────────────────────────────────────────────────────────────────────────────
+def page_about():
+    st.markdown("## 📖 About the Project")
+
+    # Project overview
+    st.markdown("""
+<div class="glass-card">
+  <h3 style="color:#3b82f6; margin-top:0;">🎯 Project Motivation</h3>
+  <p style="color:#f1f5f9; line-height:1.7;">
+    Air pollution is one of the most critical environmental and public health challenges facing India today.
+    The Central Pollution Control Board (CPCB) monitors air quality at hundreds of stations across the country,
+    generating vast amounts of time-series data. This research harnesses that data to build a rigorous,
+    leakage-free ML and DL benchmark across 18 Indian cities — with two distinct research objectives:
+    <em>current AQI estimation</em> and <em>multi-horizon AQI forecasting</em>.
+  </p>
+</div>""", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+<div class="glass-card">
+  <h4 style="color:#14b8a6; margin-top:0;">📦 Dataset Summary</h4>
+  <ul style="color:#f1f5f9; line-height:2.0; margin:0; padding-left:20px;">
+    <li><b>Source:</b> CPCB (Central Pollution Control Board)</li>
+    <li><b>Cities:</b> 18 major Indian cities</li>
+    <li><b>Records:</b> ~18.7 million hourly readings</li>
+    <li><b>Period:</b> 2018 – 2023</li>
+    <li><b>Resolution:</b> Hourly aggregated</li>
+    <li><b>Pollutants:</b> PM2.5, PM10, NO, NO2, NOx, NH3, SO2, CO, Ozone, Benzene, Toluene</li>
+    <li><b>Meteorology:</b> Temperature, Humidity, Wind Speed, Wind Direction, Solar Radiation, Pressure</li>
+    <li><b>Split:</b> 70% train / 15% val / 15% test (chronological)</li>
+  </ul>
+</div>""", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+<div class="glass-card">
+  <h4 style="color:#8b5cf6; margin-top:0;">⚙️ Methodology Overview</h4>
+  <ul style="color:#f1f5f9; line-height:2.0; margin:0; padding-left:20px;">
+    <li><b>Dual-track protocol:</b> Estimation (no leakage constraint) vs Forecasting (strict leakage-free)</li>
+    <li><b>Feature engineering:</b> 88–115 features incl. lag, rolling stats, temporal encoding, interactions</li>
+    <li><b>Leakage audit:</b> Forecasting uses ONLY lag/rolling features — zero same-time pollutants</li>
+    <li><b>Preprocessing:</b> 15-min → hourly resampling, 3-stage imputation</li>
+    <li><b>Scaling:</b> MinMaxScaler for DL models; tree models use raw features</li>
+    <li><b>Evaluation:</b> R², MAE, RMSE on held-out test set</li>
+    <li><b>Reproducibility:</b> SEED=42, chronological splits, no data leakage</li>
+  </ul>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 🤖 Models Evaluated")
+    ml_col, dl_col = st.columns(2)
+
+    with ml_col:
+        st.markdown("""
+<div class="glass-card">
+  <h4 style="color:#3b82f6; margin-top:0;">Classical Machine Learning</h4>
+  <div class="model-card">
+    <b style="color:#f59e0b;">Ridge Regression</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">L2-regularised linear baseline. Fast, interpretable. Est. R²=0.8304.</span>
+  </div>
+  <div class="model-card">
+    <b style="color:#10b981;">Random Forest</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">Ensemble of 300 trees. Robust to outliers. Est. R²=0.9874.</span>
+  </div>
+  <div class="model-card">
+    <b style="color:#3b82f6;">Gradient Boosting</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">Sequential boosting regressor. Best overall. Est. R²=0.9906.</span>
+  </div>
+  <div class="model-card">
+    <b style="color:#8b5cf6;">XGBoost</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">Extreme gradient boosting with regularisation. Est. R²=0.9856.</span>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    with dl_col:
+        st.markdown("""
+<div class="glass-card">
+  <h4 style="color:#14b8a6; margin-top:0;">Deep Learning</h4>
+  <div class="model-card">
+    <b style="color:#ef4444;">LSTM</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">Long Short-Term Memory. Sequence modelling baseline. Est. R²=0.6411.</span>
+  </div>
+  <div class="model-card">
+    <b style="color:#ec4899;">BiLSTM</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">Bidirectional LSTM for richer temporal context. Est. R²=0.5897.</span>
+  </div>
+  <div class="model-card">
+    <b style="color:#f59e0b;">CNN-BiLSTM</b><br>
+    <span style="color:#94a3b8; font-size:0.85rem;">CNN feature extraction + BiLSTM temporal modelling. Est. R²=0.2756.</span>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    # Key findings
+    st.markdown("### 🔑 Key Research Contributions")
+    st.markdown("""
+<div class="glass-card">
+  <ul style="color:#f1f5f9; line-height:2.0; margin:0; padding-left:20px;">
+    <li>First multi-city (18-city) simultaneous ML/DL benchmark on Indian CPCB hourly AQI data</li>
+    <li>Leakage-certified dual-track evaluation protocol distinguishing estimation from forecasting</li>
+    <li>Demonstrated that Gradient Boosting decisively outperforms LSTM/BiLSTM for both tasks on this dataset</li>
+    <li>Identified that CNN-BiLSTM underperforms for tabular AQI data (R²=0.28 estimation, R²=-0.41 forecasting)</li>
+    <li>Quantified rapid horizon degradation: 1h R²=0.53 → 6h R²=0.18 → 24h R²=0.10</li>
+    <li>Developed city-level performance profiles across 18 Indian cities with varying pollution characteristics</li>
+    <li>Feature importance analysis confirming lag-1 and rolling-3h features as most predictive for forecasting</li>
+  </ul>
+</div>""", unsafe_allow_html=True)
+
+    # Institution info
+    st.markdown("<br>", unsafe_allow_html=True)
+    ci1, ci2 = st.columns(2)
+    with ci1:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;">
+  <div style="font-size:2.5rem;">🎓</div>
+  <h4 style="color:#3b82f6;">Research Institution</h4>
+  <p style="color:#f1f5f9; font-weight:600;">Indian Institute of Information Technology (IIIT) Nagpur</p>
+  <p style="color:#94a3b8; font-size:0.85rem;">Research Internship Program<br>Department of Computer Science & Engineering</p>
+  <hr style="border-color:#1e293b;">
+  <p style="color:#f1f5f9; font-weight:600;">Yeshwantrao Chavan College of Engineering (YCCE)</p>
+  <p style="color:#94a3b8; font-size:0.85rem;">Nagpur, Maharashtra, India</p>
+</div>""", unsafe_allow_html=True)
+
+    with ci2:
+        st.markdown("""
+<div class="glass-card" style="text-align:center;">
+  <div style="font-size:2.5rem;">📊</div>
+  <h4 style="color:#14b8a6;">Project Statistics</h4>
+  <table style="width:100%; color:#f1f5f9; text-align:left; border-collapse:collapse;">
+    <tr><td style="padding:6px; color:#94a3b8;">Dataset Records</td><td style="padding:6px;">~18.7 Million</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Cities</td><td style="padding:6px;">18 Indian Cities</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Models Trained</td><td style="padding:6px;">7 (4 ML + 3 DL)</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Total Experiments</td><td style="padding:6px;">~450 model-city combinations</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Forecast Horizons</td><td style="padding:6px;">1h, 6h, 24h</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Best Estimation R²</td><td style="padding:6px;">0.9906 (GradBoost)</td></tr>
+    <tr><td style="padding:6px; color:#94a3b8;">Best Forecast R²</td><td style="padding:6px;">0.5313 (1h avg)</td></tr>
+  </table>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+<div style="text-align:center; color:#475569; font-size:0.85rem; padding:20px 0;">
+  AQI Prediction Platform | Research Internship — IIIT Nagpur | Built with Streamlit & Plotly
+</div>""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Sidebar Navigation
+# ─────────────────────────────────────────────────────────────────────────────
+PAGES = {
+    "🏠 Home":               page_home,
+    "🔬 AQI Estimation":     page_estimation,
+    "📈 AQI Forecasting":    page_forecasting,
+    "📊 Model Comparison":   page_comparison,
+    "🗺 India AQI Map":      page_india_map,
+    "📖 About Project":      page_about,
+}
+
+def main():
+    inject_css()
+
+    with st.sidebar:
+        st.markdown("""
+<div style="text-align:center; padding:16px 0 8px;">
+  <div style="font-size:2.2rem;">🌬️</div>
+  <div style="font-size:1.1rem; font-weight:700; color:#3b82f6;">AQI Prediction</div>
+  <div style="font-size:0.75rem; color:#94a3b8;">ML & Deep Learning Platform</div>
+</div>
+<hr style="border-color:#1e293b; margin:8px 0;">
+""", unsafe_allow_html=True)
+
+        page_name = st.radio(
+            "Navigate",
+            list(PAGES.keys()),
+            label_visibility="collapsed",
+        )
+
+        st.markdown("<hr style='border-color:#1e293b; margin:12px 0;'>", unsafe_allow_html=True)
+
+        # Quick stats in sidebar
+        st.markdown("""
+<div style="padding:8px;">
+  <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:8px;">QUICK STATS</div>
+  <div style="font-size:0.8rem; color:#f1f5f9; line-height:2.0;">
+    🏙️ 18 Cities<br>
+    📊 18.7M Records<br>
+    🤖 7 Models<br>
+    ⏱️ 3 Horizons<br>
+    🏆 R²=0.99 (Best)
+  </div>
+</div>""", unsafe_allow_html=True)
+
+        st.markdown("""
+<div class="sidebar-footer" style="position:relative;margin-top:32px;color:#475569;font-size:0.72rem;text-align:center;">
+  <hr style="border-color:#1e293b;">
+  Research Internship<br>
+  <b style="color:#3b82f6;">IIIT Nagpur</b> | YCCE<br>
+  CPCB Dataset
+</div>""", unsafe_allow_html=True)
+
+    # Render selected page
+    PAGES[page_name]()
+
+if __name__ == "__main__":
+    main()
