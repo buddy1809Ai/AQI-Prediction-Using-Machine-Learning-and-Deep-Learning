@@ -2047,7 +2047,7 @@ def main():
         st.caption("📊 CPCB Multi-City Dataset")
         st.caption("🤖 ML + Deep Learning")
         st.divider()
-        st.caption("© 2024 AQI Research Project")
+        st.caption("© 2026 AQI Research Project")
 
     # Route pages
     if page == "🏠 Home":
