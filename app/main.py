@@ -216,6 +216,22 @@ def compute_cpcb_aqi(pollutants: dict):
 def medal(rank: int) -> str:
     return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, str(rank))
 
+def _resolve_col(df: "pd.DataFrame", aliases: list) -> "str | None":
+    """Return the first alias that exists as a column in df, else None."""
+    for a in aliases:
+        if a in df.columns:
+            return a
+    return None
+
+def _safe_numeric(df: "pd.DataFrame", cols: list) -> "pd.DataFrame":
+    """Coerce listed columns to numeric in place, ignoring errors."""
+    for c in cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    return df
+
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # DATA LOADERS
 # ──────────────────────────────────────────────────────────────────────────────
@@ -986,12 +1002,24 @@ def page_india_map():
 
         if "Estimation" in task:
             data = ta[ta["model_display"] == sel_model].copy()
-            grp  = data.groupby("city").agg(r2=("r2","mean"), mae=("mae","mean"),
-                                             rmse=("rmse","mean"), n_test=("n_test","sum")).reset_index()
+            grp = data.groupby("city").agg(
+                r2=("r2","mean"), mae=("mae","mean"), rmse=("rmse","mean")
+            ).reset_index()
+            if "n_test" in data.columns:
+                grp_n = data.groupby("city")["n_test"].sum().reset_index()
+                grp = grp.merge(grp_n, on="city", how="left")
+            else:
+                grp["n_test"] = 0
         else:
             data = tb[tb["model_display"] == sel_model].copy()
-            grp  = data.groupby("city").agg(r2=("r2","mean"), mae=("mae","mean"),
-                                             rmse=("rmse","mean"), n_test=("n_test","sum")).reset_index()
+            grp = data.groupby("city").agg(
+                r2=("r2","mean"), mae=("mae","mean"), rmse=("rmse","mean")
+            ).reset_index()
+            if "n_test" in data.columns:
+                grp_n = data.groupby("city")["n_test"].sum().reset_index()
+                grp = grp.merge(grp_n, on="city", how="left")
+            else:
+                grp["n_test"] = 0
 
         if grp.empty:
             st.info(f"No data available for {sel_model}.")
@@ -1009,10 +1037,13 @@ def page_india_map():
                         coords = v
                         break
             if coords:
+                _nt = row["n_test"]
+                _nt_display = "N/A" if (pd.isna(_nt) or _nt == 0) else f"{int(_nt):,}"
                 city_rows.append({
                     "city": city_name, "lat": coords[0], "lon": coords[1],
                     "r2": row["r2"], "mae": row["mae"],
-                    "rmse": row["rmse"], "n_test": row["n_test"],
+                    "rmse": row["rmse"], "n_test": _nt,
+                    "n_test_display": _nt_display,
                 })
 
         if not city_rows:
@@ -1021,7 +1052,16 @@ def page_india_map():
 
         map_df = pd.DataFrame(city_rows)
         map_df["rank"] = map_df["r2"].rank(ascending=False).astype(int)
-        map_df["size"] = np.clip(map_df["n_test"] / map_df["n_test"].max() * 25 + 8, 8, 33)
+        # Safe marker size — never NaN, never Inf, never negative
+        _n_test_raw = pd.to_numeric(map_df["n_test"], errors="coerce").fillna(0).replace([np.inf, -np.inf], 0)
+        _max_n = _n_test_raw.max()
+        if _max_n > 0:
+            map_df["size"] = np.clip(_n_test_raw / _max_n * 25 + 8, 8, 33).fillna(12.0)
+        else:
+            map_df["size"] = 12.0
+
+        # Final NaN guard before Plotly — never pass NaN sizes
+        map_df["size"] = pd.to_numeric(map_df["size"], errors="coerce").fillna(12.0).replace([np.inf, -np.inf], 12.0).clip(lower=8)
 
         fig_map = go.Figure(go.Scattergeo(
             lat=map_df["lat"], lon=map_df["lon"],
@@ -1041,10 +1081,10 @@ def page_india_map():
                 "R²: %{customdata[1]:.4f}<br>"
                 "MAE: %{customdata[2]:.2f}<br>"
                 "RMSE: %{customdata[3]:.2f}<br>"
-                "Test Samples: %{customdata[4]:,}<br>"
+                "Test Samples: %{customdata[4]}<br>"
                 "Rank: %{customdata[5]}<extra></extra>"
             ),
-            customdata=map_df[["city","r2","mae","rmse","n_test","rank"]].values,
+            customdata=map_df[["city","r2","mae","rmse","n_test_display","rank"]].values,
         ))
         fig_map.update_layout(
             geo=dict(
@@ -1086,6 +1126,8 @@ def page_model_comparison():
         ta = load_track_a()
         tb = load_track_b()
 
+        _METRIC_TO_COL = {"r2": "Avg R²", "mae": "Avg MAE", "rmse": "Avg RMSE"}
+
         tab_e, tab_f = st.tabs(["🔬 Estimation Models", "📈 Forecasting Models"])
 
         # ── Estimation Tab ──────────────────────────────────────────────────
@@ -1108,9 +1150,9 @@ def page_model_comparison():
 
                 # Bar chart
                 fig_be = go.Figure(go.Bar(
-                    x=grp_e["Model"], y=grp_e[f"Avg {metric_e.upper()}"],
+                    x=grp_e["Model"], y=grp_e[_METRIC_TO_COL[metric_e]],
                     marker_color=COLOR_SEQ[:len(grp_e)],
-                    text=grp_e[f"Avg {metric_e.upper()}"], textposition="auto",
+                    text=grp_e[_METRIC_TO_COL[metric_e]], textposition="auto",
                 ))
                 fig_be.update_layout(
                     template=get_template(), paper_bgcolor="rgba(0,0,0,0)",
@@ -1150,8 +1192,8 @@ def page_model_comparison():
 
                 # Insight card
                 best_name = grp_e.iloc[0]["Model"]
-                best_val  = grp_e.iloc[0][f"Avg {metric_e.upper()}"]
-                worst_val = grp_e.iloc[-1][f"Avg {metric_e.upper()}"]
+                best_val  = grp_e.iloc[0][_METRIC_TO_COL[metric_e]]
+                worst_val = grp_e.iloc[-1][_METRIC_TO_COL[metric_e]]
                 gap       = abs(best_val - worst_val)
                 st.markdown(f"""
                 <div class='insight-card'>
@@ -1193,9 +1235,9 @@ def page_model_comparison():
 
                     # Bar chart
                     fig_bf = go.Figure(go.Bar(
-                        x=grp_f["Model"], y=grp_f[f"Avg {metric_f.upper()}"],
+                        x=grp_f["Model"], y=grp_f[_METRIC_TO_COL[metric_f]],
                         marker_color=COLOR_SEQ[:len(grp_f)],
-                        text=grp_f[f"Avg {metric_f.upper()}"], textposition="auto",
+                        text=grp_f[_METRIC_TO_COL[metric_f]], textposition="auto",
                     ))
                     fig_bf.update_layout(
                         template=get_template(), paper_bgcolor="rgba(0,0,0,0)",
@@ -1234,7 +1276,7 @@ def page_model_comparison():
                         st.plotly_chart(fig_grpf, use_container_width=True)
 
                     best_fn = grp_f.iloc[0]["Model"]
-                    best_fv = grp_f.iloc[0][f"Avg {metric_f.upper()}"]
+                    best_fv = grp_f.iloc[0][_METRIC_TO_COL[metric_f]]
                     st.markdown(f"""
                     <div class='insight-card'>
                       🏆 Best Forecasting Model by {metric_f.upper()} ({hz_filter}): <strong>{best_fn}</strong>
